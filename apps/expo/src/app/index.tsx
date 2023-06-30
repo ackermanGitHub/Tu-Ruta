@@ -29,9 +29,7 @@ import ConfigScreen from '../components/Config';
 import CustomServiceScreen from '../components/CustomService';
 import PaymentScreen from '../components/Payment';
 
-import { useColorScheme } from 'nativewind'
-import { useEffect } from "react";
-
+import { useColorScheme } from 'nativewind';
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
@@ -54,34 +52,13 @@ export default function Home() {
 
     const { colorScheme } = useColorScheme();
 
-    useEffect(() => {
-        console.log(colorScheme)
-    }, [colorScheme])
-
-
     const { animatedValue: pressMenuAnim, handlePressIn: pressInMenu, handlePressOut: pressOutMenu, isPressed: isMenuPressed } = usePressIn()
 
     return (
         <Drawer.Navigator
             screenOptions={{
-                drawerContentStyle: {
-                    width: '100%',
-                    padding: 0,
-                    margin: 0,
-                },
-                drawerContentContainerStyle: {
-                    width: '100%',
-                    padding: 0,
-                    margin: 0,
-                },
-
                 drawerStyle: [{
                     width: isLargeScreen ? width - (width / 4) : width - (width / 2),
-                }, {
-                    backgroundColor: colorScheme === 'light' ? 'white' : 'black',
-                    /* backgroundColor: 'blue', */
-                    padding: 0,
-                    margin: 0
                 }],
                 drawerType: isLargeScreen ? 'permanent' : 'back',
                 overlayColor: 'transparent',
@@ -109,7 +86,7 @@ export default function Home() {
                                 onPress={() => {
                                     navigation.openDrawer();
                                 }}
-                                className={'p-3 rounded-full bg-white dark:bg-black'}
+                                className={'p-3 rounded-full bg-transparent'}
                             >
                                 <AntDesign
                                     name={'menuunfold'}
@@ -261,7 +238,7 @@ export default function Home() {
                         <DrawerItem style={{
                             position: 'absolute',
                             width: '100%',
-                            bottom: 20
+                            bottom: 20,
                         }} icon={() => (
                             <View className={`w-full p-0 m-0 flex-row justify-around items-center bg-transparent`}>
                                 <PressBtn onPress={() => {

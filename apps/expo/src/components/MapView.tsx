@@ -1,15 +1,11 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useRef, useState } from 'react';
 import {
     Image,
-    /* Dimensions, */
-    useColorScheme,
     Pressable,
     Switch,
     Animated,
     StatusBar,
 } from "react-native";
-//import { type DrawerNavigationProp } from '@react-navigation/drawer';
 
 import {
     BottomSheetModal,
@@ -29,8 +25,8 @@ import Colors from '../styles/Colors';
 import { useUser } from '@clerk/clerk-expo';
 import useFadeIn from '../hooks/useFadeIn';
 import usePressIn from '../hooks/usePressIn';
+import { useColorScheme } from 'nativewind';
 
-// Image.prefetch("https://i.imgur.com/sNam9iJ.jpg")
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
 // "emailAddress": "julio.sergio2709@gmail.com", "id": "idn_2RJhwToHB8RbifJBZlXZ5jWn8D4"
@@ -56,7 +52,7 @@ const MapViewComponent = (/* { role = 'client', navigation }: { role?: UserRole,
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
     const { /* user, isLoaded, */ isSignedIn } = useUser()
-    const colorScheme = useColorScheme();
+    const { colorScheme, toggleColorScheme } = useColorScheme();
 
     const { animatedValue: fadeNavAnim, fadeIn: fadeInNav, fadeOut: fadeOutNav, isVisible: isNavVisible } = useFadeIn({ defaultValue: true })
     const { animatedValue: pressNavAnim, handlePressIn: pressInNav, handlePressOut: pressOutNav/* , isPressed: isNavPressed */ } = usePressIn()
@@ -107,15 +103,17 @@ const MapViewComponent = (/* { role = 'client', navigation }: { role?: UserRole,
         console.log(region)
     }
 
-    function handlePresentModal() {
+    const handlePresentModal = () => {
         bottomSheetModalRef.current?.present();
         setIsModalVisible(true);
     }
 
     return (
         <BottomSheetModalProvider>
+
             <View className={"bg-transparent w-full h-full"}>
-                <MapView.Animated
+
+                <MapView
                     onTouchMove={() => {
                         fadeOutNav()
                     }}
@@ -134,7 +132,6 @@ const MapViewComponent = (/* { role = 'client', navigation }: { role?: UserRole,
                     ref={mapViewRef}
                     customMapStyle={colorScheme === 'dark' ? NightMap : undefined}
                 >
-
 
                     {markers.map((marker: MarkerData, index: number) => {
                         return (
@@ -200,7 +197,8 @@ const MapViewComponent = (/* { role = 'client', navigation }: { role?: UserRole,
                         </>
                     }
 
-                </MapView.Animated>
+                </MapView>
+
                 <>
                     <Animated.View
                         className={'bg-transparent absolute z-20 bottom-24 right-12 flex-row justify-center items-center text-center self-center rounded-full'}
@@ -249,13 +247,13 @@ const MapViewComponent = (/* { role = 'client', navigation }: { role?: UserRole,
                     backgroundStyle={{ borderRadius: 50 }}
                     onDismiss={() => setIsModalVisible(false)}
                 >
-                    <View className={'w-full h-full p-4'}>
+                    <View className={'w-full h-full p-4 rounded-t-3xl'}>
                         <Text className={'text-base font-extrabold mb-5 '}>Dark mode</Text>
                         <View className={'w-full flex-row items-center justify-between my-2'}>
                             <Text className={'text-base font-bold'}>Dark mode</Text>
                             <Switch
-                                value={darkmode}
-                                onChange={() => { setDarkmode(!darkmode) }}
+                                value={colorScheme === 'dark'}
+                                onChange={() => { toggleColorScheme() }}
                             />
                         </View>
                         <View className={'w-full flex-row items-center justify-between my-2'}>
@@ -288,8 +286,11 @@ const MapViewComponent = (/* { role = 'client', navigation }: { role?: UserRole,
                         </Pressable>
                     </View>
                 </BottomSheetModal>
+
             </View>
+
             <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
+
         </BottomSheetModalProvider>
     );
 };
