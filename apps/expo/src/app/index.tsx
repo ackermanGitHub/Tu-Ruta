@@ -13,7 +13,7 @@ import {
 } from '@react-navigation/drawer';
 
 import { useUser } from '@clerk/clerk-expo';
-import SignInWithOAuth from '../components/SignInWithOAuth';
+import SignIn from "../components/Sign-in";
 
 import { View, Text } from '../styles/Themed';
 import { AntDesign, Feather, FontAwesome, FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -57,15 +57,18 @@ export default function Home() {
     return (
         <Drawer.Navigator
             screenOptions={{
+
                 drawerStyle: [{
                     width: isLargeScreen ? width - (width / 4) : width - (width / 2),
+                    borderRightColor: colorScheme === 'dark' ? '#333333' : '#888888',
+                    borderRightWidth: 2,
                 }],
                 drawerType: isLargeScreen ? 'permanent' : 'back',
                 overlayColor: 'transparent',
                 header({ navigation }) {
                     return (
                         <Animated.View
-                            className={'absolute top-11 left-10'}
+                            className={'absolute top-9 left-10'}
                             style={[
                                 {
                                     transform: [
@@ -102,37 +105,42 @@ export default function Home() {
             drawerContent={(props) => {
                 const { descriptors, navigation, state } = props;
                 return (
-                    <DrawerContentScrollView contentContainerStyle={{
-                        position: 'relative',
-                        width: '100%',
-                        height: '100%',
-                    }} {...props}>
-                        <DrawerItem icon={({ focused, color }) => {
+                    <DrawerContentScrollView
+                        contentContainerStyle={{
+                            position: 'relative',
+                            width: '100%',
+                            height: '100%',
+                            backgroundColor: colorScheme === 'dark' ? 'black' : 'white',
+                        }} {...props}
+                    >
+                        <DrawerItem style={{
+                            width: '100%',
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
                             if (!isLoaded) {
                                 return (
-                                    <View className={'w-full flex-row justify-between items-center bg-transparent px-5 gap-5'}>
+                                    <View className={'w-full flex-row justify-start items-center bg-transparent px-5'}>
                                         <ActivityIndicator
                                             size={'large'}
                                             animating
                                             color={colorScheme === 'dark' ? 'white' : 'black'}
                                         />
-                                        <View></View>
                                     </View>
                                 )
                             }
 
                             if (!isSignedIn) {
                                 return (
-                                    <View className={'w-full flex-row justify-start items-center bg-transparent'}>
+                                    <View className={'w-full flex-row justify-start items-center bg-transparent px-5 gap-5'}>
                                         <FontAwesome
                                             name={colorScheme === 'light' ? 'user-circle' : 'user-circle-o'}
                                             size={30}
                                             color={Colors[colorScheme ?? 'light'].text}
-                                            className={'ml-5'}
                                         />
                                         <PressBtn onPress={() => {
                                             navigation.navigate('Session')
-                                        }} className={`w-[60px] max-w-[120px] bg-slate-500 dark:bg-slate-700 rounded h-8 ml-5 justify-center items-center`} >
+                                        }} className={`w-[60px] max-w-[120px] bg-slate-500 dark:bg-slate-700 rounded h-8 justify-center items-center`} >
                                             <Text className={`text-white`}>Sign In</Text>
                                         </PressBtn>
                                     </View>
@@ -140,10 +148,13 @@ export default function Home() {
                             }
 
                             return (
-                                <View className={`w-full justify-around flex-row items-center bg-transparent`}>
-                                    <Image source={{
-                                        uri: "https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c"
-                                    }} className={`w-8 h-8 rounded-full`} />
+                                <View className={`w-full justify-start flex-row items-center bg-transparent px-5 gap-5`}>
+                                    <Image
+                                        source={{
+                                            uri: "https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c"
+                                        }}
+                                        className={`w-8 h-8 rounded-full`}
+                                    />
                                     <Text>{user.firstName + ' ' + user.lastName}</Text>
                                     <PressBtn onPress={() => {
                                         console.log('open modal user settings')
@@ -157,89 +168,109 @@ export default function Home() {
                                 </View>
                             )
                         }} label={'Session'} onPress={() => { }} />
-                        <DrawerItem icon={({ focused, color, }) => {
+                        <DrawerItem style={{
+                            width: '100%',
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color, }) => {
                             return (
-                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent`}>
+                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5 gap-5`}>
                                     <Ionicons
                                         name={colorScheme === 'light' ? 'md-map-outline' : 'md-map'}
                                         size={30}
                                         color={Colors[colorScheme ?? 'light'].text}
-                                        className={`ml-5`}
                                     />
-                                    <Text className={`ml-5`}>Mapa</Text>
+                                    <Text>Mapa</Text>
                                 </View>
                             )
                         }} label={'Mapa'} onPress={() => { navigation.navigate('Map') }} />
-                        <DrawerItem icon={({ focused, color }) => {
+                        <DrawerItem style={{
+                            width: '100%',
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
                             return (
-                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent`}>
+                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5 gap-5`}>
                                     <FontAwesome
                                         name='stack-overflow'
                                         size={30}
                                         color={Colors[colorScheme ?? 'light'].text}
-                                        className={`ml-5`}
                                     />
-                                    <Text className={`ml-5`}>Features</Text>
+                                    <Text>Features</Text>
                                 </View>
                             )
                         }} label={'Features'} onPress={() => { navigation.navigate('Stack') }} />
-                        <DrawerItem icon={({ focused, color }) => {
+                        <DrawerItem style={{
+                            width: '100%',
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
                             return (
-                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent`}>
+                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5 gap-5`}>
                                     <MaterialIcons
                                         name='history'
                                         size={30}
                                         color={Colors[colorScheme ?? 'light'].text}
-                                        className={`ml-5`}
                                     />
-                                    <Text className={`ml-5`}>History</Text>
+                                    <Text>History</Text>
                                 </View>
                             )
                         }} label={'History'} onPress={() => { navigation.navigate('History') }} />
-                        <DrawerItem icon={({ focused, color }) => {
+                        <DrawerItem style={{
+                            width: '100%',
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
                             return (
-                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent`}>
+                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5 gap-5`}>
                                     <FontAwesome
                                         name='gear'
                                         size={30}
                                         color={Colors[colorScheme ?? 'light'].text}
-                                        className={`ml-5`}
                                     />
-                                    <Text className={`ml-5`}>Config</Text>
+                                    <Text>Config</Text>
                                 </View>
                             )
                         }} label={'Config'} onPress={() => { navigation.navigate('Config') }} />
-                        <DrawerItem icon={({ focused, color }) => {
+                        <DrawerItem style={{
+                            width: '100%',
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
                             return (
-                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent`}>
+                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5 gap-5`}>
                                     <AntDesign
                                         name='customerservice'
                                         size={30}
                                         color={Colors[colorScheme ?? 'light'].text}
-                                        className={`ml-5`}
                                     />
-                                    <Text className={`ml-5`}>Service</Text>
-                                </View>
-                            )
-                        }} label={'Service'} onPress={() => { navigation.navigate('Service') }} />
-                        <DrawerItem icon={({ focused, color }) => {
-                            return (
-                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent`}>
-                                    <FontAwesome5
-                                        name='money-check'
-                                        size={24}
-                                        color={Colors[colorScheme ?? 'light'].text}
-                                        className={`ml-5`}
-                                    />
-                                    <Text className={`ml-5`}>Payment</Text>
+                                    <Text>Service</Text>
                                 </View>
                             )
                         }} label={'Service'} onPress={() => { navigation.navigate('Service') }} />
                         <DrawerItem style={{
-                            position: 'absolute',
                             width: '100%',
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
+                            return (
+                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5 gap-5`}>
+                                    <FontAwesome5
+                                        name='money-check'
+                                        size={24}
+                                        color={Colors[colorScheme ?? 'light'].text}
+                                    />
+                                    <Text>Payment</Text>
+                                </View>
+                            )
+                        }} label={'Service'} onPress={() => { navigation.navigate('Service') }} />
+                        <DrawerItem style={{
+                            width: '100%',
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                            position: 'absolute',
                             bottom: 20,
-                        }} icon={() => (
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={() => (
                             <View className={`w-full p-0 m-0 flex-row justify-around items-center bg-transparent`}>
                                 <PressBtn onPress={() => {
                                 }}  >
@@ -247,7 +278,6 @@ export default function Home() {
                                         name='instagram'
                                         size={25}
                                         color={Colors[colorScheme ?? 'light'].text}
-                                        className={``}
                                     />
                                 </PressBtn><PressBtn onPress={() => {
                                 }}  >
@@ -255,7 +285,6 @@ export default function Home() {
                                         name='facebook-square'
                                         size={25}
                                         color={Colors[colorScheme ?? 'light'].text}
-                                        className={``}
                                     />
                                 </PressBtn><PressBtn onPress={() => {
                                 }}  >
@@ -263,7 +292,6 @@ export default function Home() {
                                         name='twitter'
                                         size={25}
                                         color={Colors[colorScheme ?? 'light'].text}
-                                        className={``}
                                     />
                                 </PressBtn>
                             </View>
@@ -275,7 +303,7 @@ export default function Home() {
             initialRouteName="Map"
         >
 
-            <Drawer.Screen name="Session" component={SignInWithOAuth} />
+            <Drawer.Screen name="Session" component={SignIn} />
             <Drawer.Screen name="Map" component={MapViewScreen} />
             <Drawer.Screen name="Stack" component={StackScreen} />
             <Drawer.Screen name="History" component={HistoryScreen} />
