@@ -5,6 +5,7 @@ import type { inferProcedureOutput } from "@trpc/server";
 import type { AppRouter } from "@acme/api";
 import { useAuth, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
+import { Key } from "react";
 
 const PostCard: React.FC<{
   post: inferProcedureOutput<AppRouter["post"]["all"]>[number];
@@ -39,7 +40,7 @@ const Home: NextPage = () => {
           <div className="flex h-[60vh] justify-center overflow-y-scroll px-4 text-2xl">
             {postQuery.data ? (
               <div className="flex flex-col gap-4">
-                {postQuery.data?.map((p) => {
+                {postQuery.data?.map((p: { id: Key | null | undefined; }) => {
                   return <PostCard key={p.id} post={p} />;
                 })}
               </div>

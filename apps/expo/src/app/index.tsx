@@ -30,6 +30,7 @@ import CustomServiceScreen from '../components/CustomService';
 import PaymentScreen from '../components/Payment';
 
 import { useColorScheme } from 'nativewind';
+import SignUp from "../components/Sign-up";
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
@@ -139,7 +140,7 @@ export default function Home() {
                                             color={Colors[colorScheme ?? 'light'].text}
                                         />
                                         <PressBtn onPress={() => {
-                                            navigation.navigate('Session')
+                                            navigation.navigate('Sign-In')
                                         }} className={`w-[60px] max-w-[120px] bg-slate-500 dark:bg-slate-700 rounded h-8 justify-center items-center`} >
                                             <Text className={`text-white`}>Sign In</Text>
                                         </PressBtn>
@@ -167,7 +168,7 @@ export default function Home() {
                                     </PressBtn>
                                 </View>
                             )
-                        }} label={'Session'} onPress={() => { }} />
+                        }} label={'SignUp'} onPress={() => { }} />
                         <DrawerItem style={{
                             width: '100%',
                             marginHorizontal: 0,
@@ -303,7 +304,8 @@ export default function Home() {
             initialRouteName="Map"
         >
 
-            <Drawer.Screen name="Session" component={SignIn} />
+            <Drawer.Screen name="Sign-In" component={SignIn} />
+            <Drawer.Screen name="Sign-Up" component={SignUp} />
             <Drawer.Screen name="Map" component={MapViewScreen} />
             <Drawer.Screen name="Stack" component={StackScreen} />
             <Drawer.Screen name="History" component={HistoryScreen} />

@@ -50,7 +50,7 @@ const SignInWithOAuth = ({ action = 'sign-in' }) => {
   }, []);
 
   return (
-    <Pressable onPress={action === 'sign-in' ? googleSignInHandler : googleSignUpHandler} className={'w-4/5 max-w-[240px] mt-2 gap-4 bg-white dark:bg-slate-700 rounded h-12 flex-row justify-center items-center'}>
+    <Pressable onPress={action === 'sign-in' ? googleSignInHandler : googleSignUpHandler} className={'border-solid border-red-500 border-2 w-4/5 max-w-[240px] mt-2 gap-4 bg-white dark:bg-slate-700 rounded h-12 flex-row justify-center items-center'}>
       <Svg width="32px" height="32px" viewBox="-0.5 0 48 48">
         <Defs>
         </Defs>

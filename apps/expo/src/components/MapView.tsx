@@ -244,46 +244,12 @@ const MapViewComponent = (/* { role = 'client', navigation }: { role?: UserRole,
                     ref={bottomSheetModalRef}
                     index={1}
                     snapPoints={snapPoints}
-                    backgroundStyle={{ borderRadius: 50 }}
+                    backgroundStyle={{ borderRadius: 50, backgroundColor: '#555555' }}
+
                     onDismiss={() => setIsModalVisible(false)}
                 >
                     <View className={'w-full h-full p-4 rounded-t-3xl'}>
-                        <Text className={'text-base font-extrabold mb-5 '}>Dark mode</Text>
-                        <View className={'w-full flex-row items-center justify-between my-2'}>
-                            <Text className={'text-base font-bold'}>Dark mode</Text>
-                            <Switch
-                                value={colorScheme === 'dark'}
-                                onChange={() => { toggleColorScheme() }}
-                            />
-                        </View>
-                        <View className={'w-full flex-row items-center justify-between my-2'}>
-                            <Text className={'text-base font-bold'}>Use device settings</Text>
-                            <Switch value={device} onChange={() => { setDevice(!device) }} />
-                        </View>
-                        <Text className={'text-[#56636F] w-full text-sm'}>
-                            Set Dark mode to use the Light or Dark selection located in your
-                            device Display and Brightness settings.
-                        </Text>
-                        <View
-                            className={'w-screen border-b-2 border-solid border-gray-400 my-7'}
-                        />
-                        <Text className={'text-base font-extrabold mb-5 w-full'}>Theme</Text>
-                        <Pressable className={'w-full flex-row items-center justify-between my-2'} onPress={() => setTheme("dim")}>
-                            <Text className={'text-base font-bold'}>Dim</Text>
-                            {theme === "dim" ? (
-                                <AntDesign name="checkcircle" size={24} color="#4A98E9" />
-                            ) : (
-                                <Entypo name="circle" size={24} color="#56636F" />
-                            )}
-                        </Pressable>
-                        <Pressable className={'w-full flex-row items-center justify-between my-2'} onPress={() => setTheme("lightsOut")}>
-                            <Text className={'text-base font-bold'}>Lights out</Text>
-                            {theme === "lightsOut" ? (
-                                <AntDesign name="checkcircle" size={24} color="#4A98E9" />
-                            ) : (
-                                <Entypo name="circle" size={24} color="#56636F" />
-                            )}
-                        </Pressable>
+
                     </View>
                 </BottomSheetModal>
 
