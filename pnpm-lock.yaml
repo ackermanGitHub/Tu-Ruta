@@ -14,6 +14,7 @@ importers:
       '@typescript-eslint/eslint-plugin': ^5.57.1
       '@typescript-eslint/parser': ^5.57.1
       eslint: ^8.37.0
+      jotai: ^2.2.1
       prettier: ^2.8.7
       prettier-plugin-tailwindcss: ^0.1.13
       turbo: ^1.8.8
@@ -24,6 +25,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 5.57.1_iify4w3mi7rbbu6mxzspkpx4b4
       '@typescript-eslint/parser': 5.57.1_ip5up2nocltd47wbnuyybe5dxu
       eslint: 8.37.0
+      jotai: 2.2.1
       prettier: 2.8.7
       prettier-plugin-tailwindcss: 0.1.13_prettier@2.8.7
       turbo: 1.8.8
@@ -39,13 +41,9 @@ importers:
       '@babel/runtime': ^7.19.0
       '@clerk/clerk-expo': ^0.15.0
       '@gorhom/bottom-sheet': ^4.4.7
+      '@react-native-async-storage/async-storage': 1.18.2
       '@react-navigation/drawer': ^6.6.3
       '@react-navigation/native': ^6.1.7
-      '@shopify/flash-list': 1.4.3
-      '@tanstack/react-query': ^4.16.1
-      '@trpc/client': ^10.1.0
-      '@trpc/react-query': ^10.1.0
-      '@trpc/server': ^10.1.0
       '@types/react': ^18.0.25
       '@types/react-native': ~0.70.6
       eslint: ^8.28.0
@@ -77,13 +75,9 @@ importers:
     dependencies:
       '@clerk/clerk-expo': 0.15.0_4cg6b7c27zlhlanmrpbptewaxu
       '@gorhom/bottom-sheet': 4.4.7_hsnwmhatmias7cd7ue76ngae7i
+      '@react-native-async-storage/async-storage': 1.18.2_react-native@0.72.0
       '@react-navigation/drawer': 6.6.3_rcabmyeg2bxfb5c43fqwy26cfy
       '@react-navigation/native': 6.1.7_fzupopxowdrkoezxmae3c22xfi
-      '@shopify/flash-list': 1.4.3_ry6vjzci2yik5pve34eh2tgbhy
-      '@tanstack/react-query': 4.19.1_efeqa4sze3xrw4e4ytrvvccpxa
-      '@trpc/client': 10.5.0_@trpc+server@10.5.0
-      '@trpc/react-query': 10.5.0_i3ykvnz4igoclzsim3lzrnoi4y
-      '@trpc/server': 10.5.0
       expo: 49.0.0-beta.0_@babel+core@7.20.5
       expo-auth-session: 5.0.2_expo@49.0.0-beta.0
       expo-image: 1.3.1_expo@49.0.0-beta.0
@@ -3006,6 +3000,15 @@ packages:
       react: 18.2.0
     dev: false
 
+  /@react-native-async-storage/async-storage/1.18.2_react-native@0.72.0:
+    resolution: {integrity: sha512-dM8AfdoeIxlh+zqgr0o5+vCTPQ0Ru1mrPzONZMsr7ufp5h+6WgNxQNza7t0r5qQ6b04AJqTlBNixTWZxqP649Q==}
+    peerDependencies:
+      react-native: ^0.0.0-0 || 0.60 - 0.72 || 1000.0.0
+    dependencies:
+      merge-options: 3.0.4
+      react-native: 0.72.0_ildacul6tjko7jf3wnaev3ii3q
+    dev: false
+
   /@react-native-community/cli-clean/11.3.2:
     resolution: {integrity: sha512-OIKeP8fYtaa9qw4bpf1m3WJDWx4GvcxTYkyycH5SDu+pZjYWNix7XtKhwoL3Ol2NJLWxdY4LnmQG1yy8OGeIRw==}
     dependencies:
@@ -3353,20 +3356,6 @@ packages:
     dependencies:
       component-type: 1.2.1
       join-component: 1.1.0
-    dev: false
-
-  /@shopify/flash-list/1.4.3_ry6vjzci2yik5pve34eh2tgbhy:
-    resolution: {integrity: sha512-jtIReAbwWzYBV0dQ6Io9wBX+pD0C4qQFMrb5/fkEvX8PYDgBl5KRYvpfr9WLLj8CV2Jsn1X0mYOsB+ysWrI/8g==}
-    peerDependencies:
-      '@babel/runtime': '*'
-      react: '*'
-      react-native: '*'
-    dependencies:
-      '@babel/runtime': 7.20.6
-      react: 18.2.0
-      react-native: 0.72.0_ildacul6tjko7jf3wnaev3ii3q
-      recyclerlistview: 4.2.0_fzupopxowdrkoezxmae3c22xfi
-      tslib: 2.4.0
     dev: false
 
   /@sideway/address/4.1.4:
@@ -7270,6 +7259,11 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: false
 
+  /is-plain-obj/2.1.0:
+    resolution: {integrity: sha512-YWnfyRwxL/+SsrWYfOpUtz5b3YD+nyfkHvjbcanzk8zgyO4ASD67uVMRt8k5bM4lLMDnXfriRhOpemw+NfT1eA==}
+    engines: {node: '>=8'}
+    dev: false
+
   /is-plain-object/2.0.4:
     resolution: {integrity: sha512-h5PpgXkWitc38BBMYawTYMWJHFZJVnBquFE57xFpjB8pJFiF6gZ+bU+WyI/yqXiFR5mdLsgYNaPe8uao6Uv9Og==}
     engines: {node: '>=0.10.0'}
@@ -7468,6 +7462,16 @@ packages:
 
   /join-component/1.1.0:
     resolution: {integrity: sha512-bF7vcQxbODoGK1imE2P9GS9aw4zD0Sd+Hni68IMZLj7zRnquH7dXUmMw9hDI5S/Jzt7q+IyTXN0rSg2GI0IKhQ==}
+    dev: false
+
+  /jotai/2.2.1:
+    resolution: {integrity: sha512-Gz4tpbRQy9OiFgBwF9F7TieDn0UTE3C0IFSDuxHjOIvgn2tACH30UKz6p/wIlfoZROXSTCIxEvYEa7Y25WM+8g==}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      react: '>=17.0.0'
+    peerDependenciesMeta:
+      react:
+        optional: true
     dev: false
 
   /js-sdsl/4.2.0:
@@ -7903,6 +7907,13 @@ packages:
 
   /memory-cache/0.2.0:
     resolution: {integrity: sha512-OcjA+jzjOYzKmKS6IQVALHLVz+rNTMPoJvCztFaZxwG14wtAW7VRZjwTQu06vKCYOxh4jVnik7ya0SXTB0W+xA==}
+    dev: false
+
+  /merge-options/3.0.4:
+    resolution: {integrity: sha512-2Sug1+knBjkaMsMgf1ctR1Ujx+Ayku4EdJN4Z+C2+JzoeF7A3OZ9KM2GY0CpQS51NR61LTurMJrRKPhSs3ZRTQ==}
+    engines: {node: '>=10'}
+    dependencies:
+      is-plain-obj: 2.1.0
     dev: false
 
   /merge-stream/2.0.0:
@@ -9636,19 +9647,6 @@ packages:
       tslib: 2.4.1
     dev: false
 
-  /recyclerlistview/4.2.0_fzupopxowdrkoezxmae3c22xfi:
-    resolution: {integrity: sha512-uuBCi0c+ggqHKwrzPX4Z/mJOzsBbjZEAwGGmlwpD/sD7raXixdAbdJ6BTcAmuWG50Cg4ru9p12M94Njwhr/27A==}
-    peerDependencies:
-      react: '>= 15.2.1'
-      react-native: '>= 0.30.0'
-    dependencies:
-      lodash.debounce: 4.0.8
-      prop-types: 15.8.1
-      react: 18.2.0
-      react-native: 0.72.0_ildacul6tjko7jf3wnaev3ii3q
-      ts-object-utils: 0.0.5
-    dev: false
-
   /regenerate-unicode-properties/10.1.0:
     resolution: {integrity: sha512-d1VudCLoIGitcU/hEg2QqvyGZQmdC0Lf8BqdOMXGFSvJP4bNV1+XqbPQeHHLD51Jh4QJJ225dlIFvY4Ly6MXmQ==}
     engines: {node: '>=4'}
@@ -10612,10 +10610,6 @@ packages:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
     dev: false
 
-  /ts-object-utils/0.0.5:
-    resolution: {integrity: sha512-iV0GvHqOmilbIKJsfyfJY9/dNHCs969z3so90dQWsO1eMMozvTpnB1MEaUbb3FYtZTGjv5sIy/xmslEz0Rg2TA==}
-    dev: false
-
   /tsconfig-paths/3.14.1:
     resolution: {integrity: sha512-fxDhWnFSLt3VuTwtvJt5fpwxBHg5AdKWMsgcPOOIilyjymcYVZoCQF8fvFRezCNfblEXmi+PcM1eYHeOAgXCOQ==}
     dependencies:
@@ -10626,10 +10620,6 @@ packages:
 
   /tslib/1.14.1:
     resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
-
-  /tslib/2.4.0:
-    resolution: {integrity: sha512-d6xOpEDfsi2CZVlPQzGeux8XMwLT9hssAsaPYExaQMuYskwb+x1x7J371tWlbBdWHroy99KnVB6qIkUbs5X3UQ==}
-    dev: false
 
   /tslib/2.4.1:
     resolution: {integrity: sha512-tGyy4dAjRIEwI7BzsB0lynWgOpfqjUdq91XXAlIWD2OwKBH7oCl/GZG/HT4BOHrTlPMOASlMQ7veyTqpmRcrNA==}
