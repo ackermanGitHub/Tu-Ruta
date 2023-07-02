@@ -32,14 +32,20 @@ import PaymentScreen from '../components/Payment';
 import { useColorScheme } from 'nativewind';
 import SignUp from "../components/Sign-up";
 
+
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { atomWithStorage, createJSONStorage } from 'jotai/utils'
+import { useAtom, atom } from 'jotai'
+
+const storedUserRole = createJSONStorage<'taxi' | 'client'>(() => AsyncStorage)
+const userRoleAtom = atomWithStorage<'taxi' | 'client'>('userRole', "taxi", storedUserRole)
+
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
 const { width, height } = Dimensions.get("window");
 
 const CARD_HEIGHT = height / 4;
 const CARD_WIDTH = CARD_HEIGHT - 50;
-
-type UserRole = 'taxi' | 'client'
 
 const Drawer = createDrawerNavigator();
 
@@ -50,6 +56,8 @@ export default function Home() {
     const isSmallScreen = width <= 350;
 
     const { user, isLoaded, isSignedIn } = useUser();
+
+    const [userRole, setUserRole] = useAtom(userRoleAtom)
 
     const { colorScheme } = useColorScheme();
 
@@ -274,6 +282,7 @@ export default function Home() {
                         }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={() => (
                             <View className={`w-full p-0 m-0 flex-row justify-around items-center bg-transparent`}>
                                 <PressBtn onPress={() => {
+                                    setUserRole('client')
                                 }}  >
                                     <AntDesign
                                         name='instagram'
@@ -281,6 +290,7 @@ export default function Home() {
                                         color={Colors[colorScheme ?? 'light'].text}
                                     />
                                 </PressBtn><PressBtn onPress={() => {
+                                    setUserRole('taxi')
                                 }}  >
                                     <AntDesign
                                         name='facebook-square'
@@ -288,6 +298,7 @@ export default function Home() {
                                         color={Colors[colorScheme ?? 'light'].text}
                                     />
                                 </PressBtn><PressBtn onPress={() => {
+                                    console.log("drawer", { userRole, AsyncStorage })
                                 }}  >
                                     <AntDesign
                                         name='twitter'

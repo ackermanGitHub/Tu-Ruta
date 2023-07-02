@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
     Image,
     Pressable,
-    Switch,
     Animated,
     StatusBar,
 } from "react-native";
@@ -18,8 +17,8 @@ import MapView, { Circle, Marker, type MapMarker, type Region, MarkerAnimated } 
 import { type MarkerData } from '../constants/Markers';
 import useMapConnection from '../hooks/useMapConnection';
 
-import { View, Text } from '../styles/Themed';
-import { AntDesign, Entypo, FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { View } from '../styles/Themed';
+import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import Colors from '../styles/Colors';
 
 import { useUser } from '@clerk/clerk-expo';
@@ -58,11 +57,7 @@ const MapViewComponent = (/* { role = 'client', navigation }: { role?: UserRole,
     const { animatedValue: pressNavAnim, handlePressIn: pressInNav, handlePressOut: pressOutNav/* , isPressed: isNavPressed */ } = usePressIn()
     const [_isModalVisible, setIsModalVisible] = useState(false);
 
-    const { markers, location, /* setLocation, historyLocation */ } = useMapConnection({
-        onLocationLoad: (location) => {
-            console.log(location)
-        }
-    });
+    const { markers, location, /* setLocation, historyLocation */ } = useMapConnection();
 
     useEffect(() => {
         if (selectedMarkerIndex !== null && mapViewRef.current) {
@@ -100,7 +95,7 @@ const MapViewComponent = (/* { role = 'client', navigation }: { role?: UserRole,
     };
 
     const onRegionChangeComplete = (region: Region) => {
-        console.log(region)
+
     }
 
     const handlePresentModal = () => {

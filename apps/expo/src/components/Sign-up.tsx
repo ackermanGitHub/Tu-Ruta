@@ -1,18 +1,33 @@
 import React, { useState } from 'react';
-import { TextInput, Pressable, TouchableOpacity, useColorScheme } from 'react-native';
+import { TextInput, Pressable, useColorScheme } from 'react-native';
 import { View, Text } from '../styles/Themed';
 import { useSignUp } from "@clerk/clerk-expo";
-import { Stack, useRouter } from 'expo-router';
-import SignWithOAuth from './SignInWithOAuth';
+import { Stack } from 'expo-router';
 import { type DrawerNavigationProp } from '@react-navigation/drawer';
+import { PressBtn } from '../styles/PressBtn';
+import SignWithOAuth from './SignWithOAuth';
+import { Image } from 'expo-image';
+import TuRutaImg from '../../assets/Logo.png'
+
+function determineCredentialType(input: string): string {
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    const phoneRegex = /^\d{10}$/;
+
+    if (emailRegex.test(input)) {
+        return 'email';
+    } else if (phoneRegex.test(input)) {
+        return 'phone_number';
+    } else {
+        return 'username';
+    }
+}
 
 export default function SignUp({ navigation }: { navigation?: DrawerNavigationProp<any> }) {
 
     const { isLoaded, signUp, setActive } = useSignUp();
-    const router = useRouter();
     const colorScheme = useColorScheme();
 
-    const [email, setEmail] = useState('');
+    const [credential, setCredential] = useState('');
     const [password, setPassword] = useState('');
     const [pendingVerification, setPendingVerification] = useState(false);
     const [code, setCode] = useState("");
@@ -22,34 +37,56 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
             return;
         }
 
+        const credentialType = determineCredentialType(credential)
+
         try {
-            await signUp.create({
-                emailAddress: email.trim(),
-                password,
-            });
+            if (credentialType === 'email') {
+                await signUp.create({
+                    emailAddress: credential.trim(),
+                    password,
+                });
+                await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+            } else if (credentialType === 'phone_number') {
+                await signUp.create({
+                    phoneNumber: credential.trim(),
+                    password,
+                });
+                await signUp.preparePhoneNumberVerification({ strategy: "phone_code" });
+            }
 
-            // send the email.
-            await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-
-            // change the UI to our pending section.
             setPendingVerification(true);
+
         } catch (err: any) {
             console.error(JSON.stringify(err, null, 2));
         }
     }
 
-    const handleVerifyEmail = async () => {
+    const handleVerifyCredentials = async () => {
+
         if (!isLoaded) {
             return;
         }
 
-        try {
-            const completeSignUp = await signUp.attemptEmailAddressVerification({
-                code,
-            });
+        const credentialType = determineCredentialType(credential)
 
-            await setActive({ session: completeSignUp.createdSessionId });
-            router.replace('/profile');
+        try {
+            if (credentialType === 'email') {
+
+                const completeEmailSignUp = await signUp.attemptEmailAddressVerification({
+                    code,
+                });
+                await setActive({ session: completeEmailSignUp.createdSessionId });
+
+            } else if (credentialType === 'phone_number') {
+
+                const completePhoneSignUp = await signUp.attemptPhoneNumberVerification({
+                    code,
+                });
+                await setActive({ session: completePhoneSignUp.createdSessionId });
+
+            }
+            navigation?.navigate('Map')
+
         } catch (err: any) {
             console.error(JSON.stringify(err, null, 2));
         }
@@ -60,24 +97,33 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
             <Stack.Screen options={{
                 title: 'Sign Up',
             }} />
+            <View className='w-3/4 items-center justify-center'>
+                <Image
+                    source={TuRutaImg}
+                    alt='Tu-Ruta Logo'
+                    className={`h-16 w-14`}
+                />
+                <Text className='font-bold text-3xl my-4 text-center'>Crear Cuenta en La Ruta</Text>
+            </View>
+            <SignWithOAuth action={'sign-in'} />
             {!pendingVerification && (
                 <>
                     <View className={'w-4/5 mb-4 max-w-[320px]'}>
                         <TextInput
-                            className={'h-12 px-4 border rounded border-gray-300 dark:text-white dark:bg-transparent dark:border-gray-700'}
-                            placeholder="Email..."
+                            className={'h-12 px-4 border rounded border-gray-300 dark:text-slate-500 dark:bg-transparent dark:border-gray-600'}
+                            placeholder="Teléfono, email o usuario"
                             autoCapitalize="none"
-                            placeholderTextColor={colorScheme === 'dark' ? "white" : "gray"}
-                            onChangeText={setEmail}
-                            value={email}
+                            placeholderTextColor={colorScheme === 'dark' ? "rgb(107 114 128)" : "gray"}
+                            onChangeText={setCredential}
+                            value={credential}
                         />
                     </View>
                     <View className={'w-4/5 mb-4 max-w-[320px]'}>
                         <TextInput
-                            className={'h-12 px-4 border rounded border-gray-300 dark:text-white dark:bg-transparent dark:border-gray-700'}
-                            placeholder="Password..."
-                            secureTextEntry={true}
-                            placeholderTextColor={colorScheme === 'dark' ? "white" : "gray"}
+                            className={'h-12 px-4 border rounded border-gray-300 dark:text-slate-500 dark:bg-transparent dark:border-gray-600'}
+                            placeholder="Contraseña"
+                            autoCapitalize="none"
+                            placeholderTextColor={colorScheme === 'dark' ? "rgb(107 114 128)" : "gray"}
                             onChangeText={setPassword}
                             value={password}
                         />
@@ -88,24 +134,24 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                 <View>
                     <View>
                         <TextInput
-                            className={'h-12 px-4 border rounded border-gray-300 dark:text-white dark:bg-transparent dark:border-gray-700'}
-                            placeholderTextColor={colorScheme === 'dark' ? "white" : "gray"}
+                            className={'h-12 px-4 border rounded border-gray-300 dark:text-gray-600 dark:bg-transparent dark:border-gray-800'}
+                            placeholderTextColor={colorScheme === 'dark' ? "rgb(107 114 128)" : "gray"}
                             value={code}
                             placeholder="Code..."
                             onChangeText={(code) => setCode(code)}
                         />
                     </View>
-                    <TouchableOpacity className={'w-4/5 max-w-[240px] bg-[#FCCB6F] dark:bg-transparent rounded h-12 justify-center items-center'} onPress={handleVerifyEmail}>
-                        <Text className={'font-bold text-lg text-white'}>Verify Email</Text>
-                    </TouchableOpacity>
+                    <PressBtn onPress={() => { void handleVerifyCredentials() }} className={'w-[240px] max-w-[280px] bg-[#FCCB6F] my-2 dark:bg-white rounded-3xl h-12 justify-center items-center'} >
+                        <Text className={'dark:text-black text-white font-bold text-lg'}>Verificar</Text>
+                    </PressBtn>
                 </View>
             )}
-            <Pressable onPress={() => { }} className={'w-4/5 max-w-[240px] bg-[#FCCB6F] dark:bg-transparent rounded h-12 justify-center items-center'}>
-                <Text className={'font-bold text-lg text-white'}>Sign Up</Text>
-            </Pressable>
-            <SignWithOAuth action='sign-up' />
-            <Pressable className={'my-2'} onPress={() => { navigation && navigation.navigate('Sign-In') }}>
-                <Text className={'text-[#2e78b7] text-xs'}>Do you have an account? Sign In</Text>
+            <PressBtn onPress={() => { void handleSignUp() }} className={'w-[240px] max-w-[280px] bg-[#FCCB6F] my-2 dark:bg-white rounded-3xl h-12 justify-center items-center'} >
+                <Text className={'dark:text-black text-white font-bold text-lg'}>Crear Cuenta</Text>
+            </PressBtn>
+            <Pressable className={'my-4 flex-row items-center justify-center'} onPress={() => { navigation && navigation.navigate('Sign-In') }}>
+                <Text className={'text-sm font-light dark:text-gray-400'}>Ya Tienes Cuenta?</Text>
+                <Text className={'text-[#2e78b7] font-normal ml-1 text-sm'}>Inicia Sesióin</Text>
             </Pressable>
         </View>
     );
