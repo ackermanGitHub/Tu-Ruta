@@ -41,7 +41,7 @@ export default function SignIn({ navigation }: { navigation?: DrawerNavigationPr
             <Stack.Screen options={{
                 title: 'Sign In',
             }} />
-            <View className='w-3/4 items-center justify-center'>
+            <View className='w-3/4 items-center justify-center font-[Inter-Regular]'>
                 <Image
                     source={TuRutaImg}
                     alt='Tu-Ruta Logo'

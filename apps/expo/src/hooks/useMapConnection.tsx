@@ -53,7 +53,7 @@ const useMapConnection = () => {
 
         const asyncWebSocket = async () => {
             const protocol = (await AsyncStorage.getItem('userRole'))?.includes("client") ? 'map-client' : 'map-taxi';
-            const wsGate = new WebSocket("ws://192.168.225.191:3333", protocol);
+            const wsGate = new WebSocket("ws://192.168.1.102:3333", protocol);
 
             wsGate.addEventListener("open", (event) => {
                 console.log('%c Connection opened', 'background: orange; color: black;', event);

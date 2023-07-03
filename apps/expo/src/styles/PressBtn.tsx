@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import {
     Animated,
     Pressable,
-    ViewProps
+    type ViewProps
 } from 'react-native';
 
 type PressBtnProps = {
