@@ -36,6 +36,7 @@ import SignUp from "../components/Sign-up";
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { atomWithStorage, createJSONStorage } from 'jotai/utils'
 import { useAtom, atom } from 'jotai'
+import { useRef } from "react";
 
 const storedUserRole = createJSONStorage<'taxi' | 'client'>(() => AsyncStorage)
 const userRoleAtom = atomWithStorage<'taxi' | 'client'>('userRole', "taxi", storedUserRole)
@@ -50,6 +51,24 @@ const CARD_WIDTH = CARD_HEIGHT - 50;
 const Drawer = createDrawerNavigator();
 
 export default function Home() {
+
+    const dropdownVisible = useRef(new Animated.Value(1)).current;
+
+    const handleOpenDropdown = () => {
+        Animated.timing(dropdownVisible, {
+            toValue: 1,
+            duration: 175,
+            useNativeDriver: true,
+        }).start();
+    };
+
+    const handleCloseDropdown = () => {
+        Animated.timing(dropdownVisible, {
+            toValue: 0,
+            duration: 150,
+            useNativeDriver: true,
+        }).start();
+    };
 
     const isLargeScreen = width >= 768;
 
@@ -122,11 +141,40 @@ export default function Home() {
                             backgroundColor: colorScheme === 'dark' ? 'black' : 'white',
                         }} {...props}
                     >
+
+                        {/* Profile DropDown Modal */}
+                        {/* <Animated.View
+                            className='absolute justify-around right-5 top-20 bg-white dark:bg-zinc-800 border border-solid border-zinc-400 rounded-md w-32 h-40 z-40'
+                            style={[
+                                {
+                                    transform: [{ scale: dropdownVisible }],
+                                },
+                            ]}
+                        >
+
+                            <Pressable onPress={() => { console.log("Editar Foto") }}>
+                                <Text>Cambiar Foto</Text>
+                            </Pressable>
+
+                            <Pressable onPress={() => { console.log("Editar Nombre") }}>
+                                <Text>Cambiar Nombre</Text>
+                            </Pressable>
+
+                            <Pressable onPress={() => { console.log("Cerrar Sesión") }}>
+                                <Text>Cerrar Sesión</Text>
+                            </Pressable>
+
+                        </Animated.View> */}
+
                         <DrawerItem style={{
                             width: '100%',
                             marginHorizontal: 0,
                             marginVertical: 0,
+                            borderRadius: 0
+                        }} labelStyle={{
+                            width: '100%',
                         }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
+
                             if (!isLoaded) {
                                 return (
                                     <View className={'w-full flex-row justify-start items-center bg-transparent px-5'}>
@@ -141,15 +189,15 @@ export default function Home() {
 
                             if (!isSignedIn) {
                                 return (
-                                    <View className={'w-full flex-row justify-start items-center bg-transparent px-5 gap-5'}>
+                                    <View className={'w-full flex-row justify-start items-center bg-transparent px-5'}>
                                         <FontAwesome
                                             name={colorScheme === 'light' ? 'user-circle' : 'user-circle-o'}
                                             size={30}
                                             color={Colors[colorScheme ?? 'light'].text}
                                         />
                                         <PressBtn onPress={() => {
-                                            navigation.navigate('Sign-In')
-                                        }} className={`w-[60px] max-w-[120px] bg-slate-500 dark:bg-slate-700 rounded h-8 justify-center items-center`} >
+
+                                        }} className={`w-[60px] max-w-[120px] ml-5 bg-slate-500 dark:bg-slate-700 rounded h-8 justify-center items-center`} >
                                             <Text className={`text-white`}>Sign In</Text>
                                         </PressBtn>
                                     </View>
@@ -157,128 +205,151 @@ export default function Home() {
                             }
 
                             return (
-                                <View className={`w-full justify-start flex-row items-center bg-transparent px-5 gap-5`}>
-                                    <Image
-                                        source={{
-                                            uri: "https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c"
-                                        }}
-                                        className={`w-8 h-8 rounded-full`}
-                                    />
-                                    <Text>{user.firstName + ' ' + user.lastName}</Text>
-                                    <PressBtn onPress={() => {
-                                        console.log('open modal user settings')
-                                    }}>
+                                <View className={`w-full justify-between flex-row items-center bg-transparent px-5`}>
+
+                                    <View className="w-full bg-transparent flex-row items-center">
+                                        <Image
+                                            source={{
+                                                uri: "https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c"
+                                            }}
+                                            alt="Profile Image"
+                                            className={`w-8 h-8 rounded-full`}
+                                        />
+                                        <Text className="ml-5">{`${user.firstName} ${user.lastName}`}</Text>
+                                    </View>
+
+                                    {/* Deopdown trigger */}
+                                    {/* <Pressable
+                                        onPress={handleOpenDropdown}
+                                    >
                                         <Feather
                                             name='more-vertical'
                                             size={20}
                                             color={Colors[colorScheme ?? 'light'].text}
                                         />
-                                    </PressBtn>
+                                    </Pressable> */}
+
                                 </View>
+
                             )
+
                         }} label={'SignUp'} onPress={() => { }} />
+
                         <DrawerItem style={{
                             width: '100%',
                             marginHorizontal: 0,
                             marginVertical: 0,
+                            borderRadius: 0
                         }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color, }) => {
                             return (
-                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5 gap-5`}>
+                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
                                     <Ionicons
                                         name={colorScheme === 'light' ? 'md-map-outline' : 'md-map'}
                                         size={30}
                                         color={Colors[colorScheme ?? 'light'].text}
                                     />
-                                    <Text>Mapa</Text>
+                                    <Text className="ml-5">Mapa</Text>
                                 </View>
                             )
                         }} label={'Mapa'} onPress={() => { navigation.navigate('Map') }} />
+
                         <DrawerItem style={{
                             width: '100%',
                             marginHorizontal: 0,
                             marginVertical: 0,
+                            borderRadius: 0
                         }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
                             return (
-                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5 gap-5`}>
+                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
                                     <FontAwesome
                                         name='stack-overflow'
                                         size={30}
                                         color={Colors[colorScheme ?? 'light'].text}
                                     />
-                                    <Text>Features</Text>
+                                    <Text className="ml-6">Stack</Text>
                                 </View>
                             )
                         }} label={'Features'} onPress={() => { navigation.navigate('Stack') }} />
+
                         <DrawerItem style={{
                             width: '100%',
                             marginHorizontal: 0,
                             marginVertical: 0,
+                            borderRadius: 0
                         }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
                             return (
-                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5 gap-5`}>
+                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
                                     <MaterialIcons
                                         name='history'
                                         size={30}
                                         color={Colors[colorScheme ?? 'light'].text}
                                     />
-                                    <Text>History</Text>
+                                    <Text className="ml-5">History</Text>
                                 </View>
                             )
                         }} label={'History'} onPress={() => { navigation.navigate('History') }} />
+
                         <DrawerItem style={{
                             width: '100%',
                             marginHorizontal: 0,
                             marginVertical: 0,
+                            borderRadius: 0
                         }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
                             return (
-                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5 gap-5`}>
+                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
                                     <FontAwesome
                                         name='gear'
                                         size={30}
                                         color={Colors[colorScheme ?? 'light'].text}
                                     />
-                                    <Text>Config</Text>
+                                    <Text className="ml-6">Config</Text>
                                 </View>
                             )
                         }} label={'Config'} onPress={() => { navigation.navigate('Config') }} />
+
                         <DrawerItem style={{
                             width: '100%',
                             marginHorizontal: 0,
                             marginVertical: 0,
+                            borderRadius: 0
                         }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
                             return (
-                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5 gap-5`}>
+                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
                                     <AntDesign
                                         name='customerservice'
                                         size={30}
                                         color={Colors[colorScheme ?? 'light'].text}
                                     />
-                                    <Text>Service</Text>
+                                    <Text className="ml-5">Service</Text>
                                 </View>
                             )
                         }} label={'Service'} onPress={() => { navigation.navigate('Service') }} />
+
                         <DrawerItem style={{
                             width: '100%',
                             marginHorizontal: 0,
                             marginVertical: 0,
+                            borderRadius: 0
                         }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
                             return (
-                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5 gap-5`}>
+                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
                                     <FontAwesome5
                                         name='money-check'
                                         size={24}
                                         color={Colors[colorScheme ?? 'light'].text}
                                     />
-                                    <Text>Payment</Text>
+                                    <Text className="ml-5">Payment</Text>
                                 </View>
                             )
                         }} label={'Service'} onPress={() => { navigation.navigate('Service') }} />
+
                         <DrawerItem style={{
                             width: '100%',
                             marginHorizontal: 0,
                             marginVertical: 0,
                             position: 'absolute',
-                            bottom: 20,
+                            bottom: 0,
+                            borderRadius: 0
                         }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={() => (
                             <View className={`w-full p-0 m-0 flex-row justify-around items-center bg-transparent`}>
                                 <PressBtn onPress={() => {
@@ -309,6 +380,7 @@ export default function Home() {
                             </View>
 
                         )} label={'Social Networks'} onPress={() => { }} />
+
                     </DrawerContentScrollView>
                 )
             }}
