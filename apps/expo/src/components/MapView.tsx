@@ -26,32 +26,28 @@ import useFadeIn from '../hooks/useFadeIn';
 import usePressIn from '../hooks/usePressIn';
 import { useColorScheme } from 'nativewind';
 
+import { useKeepAwake } from 'expo-keep-awake';
+
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
 // "emailAddress": "julio.sergio2709@gmail.com", "id": "idn_2RJhwToHB8RbifJBZlXZ5jWn8D4"
 
-// const { width,  height } = Dimensions.get("window");
-
 const snapPoints = ["25%", "48%", "75%"];
-// const CARD_HEIGHT = height / 4;
-// const CARD_WIDTH = CARD_HEIGHT - 50;
 
-// type UserRole = 'taxi' | 'client'
-
-const MapViewComponent = (/* { role = 'client', navigation }: { role?: UserRole, navigation?: DrawerNavigationProp<any> } */) => {
+const MapViewComponent = () => {
 
 
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
-    const [darkmode, setDarkmode] = useState(false);
-    const [device, setDevice] = useState(false);
-    const [theme, setTheme] = useState("dim");
+    const [userSelected, setUserSelected] = useState(false);
 
     const userMarkerRef = useRef<MapMarker>(null);
     const mapViewRef = useRef<MapView>(null);
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
-    const { /* user, isLoaded, */ isSignedIn } = useUser()
-    const { colorScheme, toggleColorScheme } = useColorScheme();
+
+    const { user, isLoaded, isSignedIn } = useUser()
+    const { colorScheme } = useColorScheme();
+    useKeepAwake();
 
     const { animatedValue: fadeNavAnim, fadeIn: fadeInNav, fadeOut: fadeOutNav, isVisible: isNavVisible } = useFadeIn({ defaultValue: true })
     const { animatedValue: pressNavAnim, handlePressIn: pressInNav, handlePressOut: pressOutNav/* , isPressed: isNavPressed */ } = usePressIn()
@@ -94,12 +90,14 @@ const MapViewComponent = (/* { role = 'client', navigation }: { role?: UserRole,
         }
     };
 
-    const onRegionChangeComplete = (region: Region) => {
-
-    }
-
     const handlePresentModal = () => {
         bottomSheetModalRef.current?.present();
+        setIsModalVisible(true);
+    }
+
+    const openUserProfile = () => {
+        bottomSheetModalRef.current?.present();
+        setUserSelected(true)
         setIsModalVisible(true);
     }
 
@@ -123,7 +121,6 @@ const MapViewComponent = (/* { role = 'client', navigation }: { role?: UserRole,
                         longitudeDelta: 0.0221,
                     }}
                     showsCompass={false}
-                    onRegionChangeComplete={onRegionChangeComplete}
                     ref={mapViewRef}
                     customMapStyle={colorScheme === 'dark' ? NightMap : undefined}
                 >
@@ -154,8 +151,10 @@ const MapViewComponent = (/* { role = 'client', navigation }: { role?: UserRole,
                             <MarkerAnimated
                                 ref={userMarkerRef}
                                 coordinate={location.coords}
-                                /* coordinate={currentPosition} */
                                 anchor={{ x: 0.5, y: 0.5 }}
+                                onPress={() => {
+                                    openUserProfile();
+                                }}
                             >
                                 <Animated.View className={'items-center justify-center w-12 h-12'} >
                                     {
@@ -241,10 +240,32 @@ const MapViewComponent = (/* { role = 'client', navigation }: { role?: UserRole,
                     snapPoints={snapPoints}
                     backgroundStyle={{ borderRadius: 50, backgroundColor: '#555555' }}
 
-                    onDismiss={() => setIsModalVisible(false)}
+                    onDismiss={() => {
+                        setIsModalVisible(false)
+                        setUserSelected(false)
+                    }}
                 >
-                    <View className={'w-full h-full p-4 rounded-t-3xl'}>
-
+                    <View className={'w-full h-full rounded-t-3xl overflow-hidden'}>
+                        {userSelected && isSignedIn && isLoaded && (
+                            <View className='w-full h-56 relative'>
+                                <Animated.Image
+                                    source={{
+                                        uri: 'https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c'
+                                    }}
+                                    className={'w-full h-48'}
+                                    resizeMode="cover"
+                                />
+                                <View className={'absolute left-5 bottom-2 border-2 border-solid border-white dark:border-black w-16 h-16 rounded-full overflow-hidden'}>
+                                    <Animated.Image
+                                        source={{
+                                            uri: 'https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c'
+                                        }}
+                                        className={'w-16 h-16'}
+                                        resizeMode="cover"
+                                    />
+                                </View>
+                            </View>
+                        )}
                     </View>
                 </BottomSheetModal>
 
