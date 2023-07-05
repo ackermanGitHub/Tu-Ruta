@@ -16,7 +16,7 @@ import { useUser } from '@clerk/clerk-expo';
 import SignIn from "../components/Sign-in";
 
 import { View, Text } from '../styles/Themed';
-import { AntDesign, Feather, FontAwesome, FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { AntDesign, FontAwesome, FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import Colors from '../styles/Colors';
 
 import { PressBtn } from '../styles/PressBtn';
@@ -38,8 +38,8 @@ import { atomWithStorage, createJSONStorage } from 'jotai/utils'
 import { useAtom, atom } from 'jotai'
 import { useRef } from "react";
 
-const storedUserRole = createJSONStorage<'taxi' | 'client'>(() => AsyncStorage)
-const userRoleAtom = atomWithStorage<'taxi' | 'client'>('userRole', "taxi", storedUserRole)
+const storedProfileRole = createJSONStorage<'taxi' | 'client'>(() => AsyncStorage)
+export const profileRoleAtom = atomWithStorage<'taxi' | 'client'>('userRole', "taxi", storedProfileRole)
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
@@ -76,7 +76,7 @@ export default function Home() {
 
     const { user, isLoaded, isSignedIn } = useUser();
 
-    const [userRole, setUserRole] = useAtom(userRoleAtom)
+    const [profileRole, setProfileRole] = useAtom(profileRoleAtom)
 
     const { colorScheme } = useColorScheme();
 
@@ -131,7 +131,7 @@ export default function Home() {
 
             }}
             drawerContent={(props) => {
-                const { descriptors, navigation, state } = props;
+                const { navigation } = props;
                 return (
                     <DrawerContentScrollView
                         contentContainerStyle={{
@@ -149,7 +149,7 @@ export default function Home() {
                             borderRadius: 0
                         }} labelStyle={{
                             width: '100%',
-                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={() => {
 
                             if (!isLoaded) {
                                 return (
@@ -205,7 +205,7 @@ export default function Home() {
                             marginHorizontal: 0,
                             marginVertical: 0,
                             borderRadius: 0
-                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color, }) => {
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={() => {
                             return (
                                 <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
                                     <Ionicons
@@ -223,7 +223,7 @@ export default function Home() {
                             marginHorizontal: 0,
                             marginVertical: 0,
                             borderRadius: 0
-                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={() => {
                             return (
                                 <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
                                     <FontAwesome
@@ -241,7 +241,7 @@ export default function Home() {
                             marginHorizontal: 0,
                             marginVertical: 0,
                             borderRadius: 0
-                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={() => {
                             return (
                                 <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
                                     <MaterialIcons
@@ -259,7 +259,7 @@ export default function Home() {
                             marginHorizontal: 0,
                             marginVertical: 0,
                             borderRadius: 0
-                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={() => {
                             return (
                                 <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
                                     <FontAwesome
@@ -277,7 +277,7 @@ export default function Home() {
                             marginHorizontal: 0,
                             marginVertical: 0,
                             borderRadius: 0
-                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={() => {
                             return (
                                 <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
                                     <AntDesign
@@ -295,7 +295,7 @@ export default function Home() {
                             marginHorizontal: 0,
                             marginVertical: 0,
                             borderRadius: 0
-                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={({ focused, color }) => {
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={() => {
                             return (
                                 <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
                                     <FontAwesome5
@@ -318,7 +318,7 @@ export default function Home() {
                         }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={() => (
                             <View className={`w-full p-0 m-0 flex-row justify-around items-center bg-transparent`}>
                                 <PressBtn onPress={() => {
-                                    setUserRole('client')
+                                    void setProfileRole('client')
                                 }}  >
                                     <AntDesign
                                         name='instagram'
@@ -326,7 +326,7 @@ export default function Home() {
                                         color={Colors[colorScheme ?? 'light'].text}
                                     />
                                 </PressBtn><PressBtn onPress={() => {
-                                    setUserRole('taxi')
+                                    void setProfileRole('taxi')
                                 }}  >
                                     <AntDesign
                                         name='facebook-square'
@@ -334,7 +334,7 @@ export default function Home() {
                                         color={Colors[colorScheme ?? 'light'].text}
                                     />
                                 </PressBtn><PressBtn onPress={() => {
-                                    console.log("drawer", { userRole, AsyncStorage })
+                                    console.log("drawer", { profileRole, AsyncStorage })
                                 }}  >
                                     <AntDesign
                                         name='twitter'
@@ -344,7 +344,7 @@ export default function Home() {
                                 </PressBtn>
                             </View>
 
-                        )} label={'Social Networks'} onPress={() => { }} />
+                        )} label={'Social Networks'} onPress={() => { console.log("drawer", { profileRole, AsyncStorage }) }} />
 
                     </DrawerContentScrollView>
                 )

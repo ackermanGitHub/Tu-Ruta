@@ -6,8 +6,10 @@ import { useUser } from '@clerk/clerk-expo';
 
 import { useAtom, atom } from 'jotai'
 import { atomWithStorage, createJSONStorage } from 'jotai/utils'
+import { profileRoleAtom } from '../app';
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import NetInfo from '@react-native-community/netinfo';
 
 const storedMarkers = createJSONStorage<MarkerData[]>(() => AsyncStorage)
 const markersAtom = atomWithStorage<MarkerData[]>('markers', initialMarkers, storedMarkers)
@@ -29,6 +31,13 @@ const useMapConnection = () => {
     const [location, setLocation] = useAtom(locationAtom);
     const [heading, setHeading] = useAtom(headingAtom);
 
+    const locationRef = useRef(location);
+    locationRef.current = location;
+
+    const [profileRole, setProfileRole] = useAtom(profileRoleAtom)
+    const profileRoleRef = useRef(profileRole);
+    profileRoleRef.current = profileRole;
+
     // const [isReady, setIsReady] = useState(false);
     // const [error, setError] = useState<string | null>(null);
 
@@ -36,8 +45,31 @@ const useMapConnection = () => {
 
     const { user, isLoaded, isSignedIn } = useUser()
 
-    const printUser = () => {
-        console.log(user)
+    const sendMessageToServer = (message: string) => {
+        try {
+            console.log(ws)
+
+            if (ws.current?.readyState === WebSocket.CONNECTING) {
+                setTimeout(() => {
+                    sendMessageToServer(message)
+                }, 3000);
+            }
+
+            if (ws.current?.readyState === WebSocket.CLOSING) {
+                console.log("WebSocket is closing");
+            }
+
+            if (ws.current?.readyState === WebSocket.CLOSED) {
+                console.log("WebSocket is closed");
+            }
+
+            if (ws.current?.readyState === WebSocket.OPEN) {
+                ws.current?.send(message);
+            }
+
+        } catch (error) {
+            console.error(error)
+        }
     }
 
     const getLocation = () => {
@@ -61,7 +93,7 @@ const useMapConnection = () => {
         const asyncWebSocket = async () => {
             const protocol = (await AsyncStorage.getItem('userRole'))?.includes("client") ? 'map-client' : 'map-worker';
 
-            ws.current = new WebSocket("ws://192.168.66.191:3333", protocol);
+            ws.current = new WebSocket("ws://192.168.1.102:3333", protocol);
 
             ws.current.addEventListener("open", (event) => {
                 console.log('%c Connection opened', 'background: orange; color: black;', event);
@@ -83,7 +115,7 @@ const useMapConnection = () => {
         let PositionSubscrition: Location.LocationSubscription | undefined = undefined;
 
         const trackPosition = async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
+            const { status } = await Location.requestBackgroundPermissionsAsync()
             await Location.enableNetworkProviderAsync()
 
             if (status !== 'granted') {
@@ -118,12 +150,37 @@ const useMapConnection = () => {
 
         void trackPosition()
 
+        const unsubscribe = NetInfo.addEventListener(state => {
+            console.log('Connection type', state.type);
+            console.log('Is connected?', state.isConnected);
+        });
+
+        // To unsubscribe to these update, just use:
+
+
+        const positionStreaming = setInterval(() => {
+
+            console.log(profileRoleRef)
+
+            if (isSignedIn && isLoaded) {
+                sendMessageToServer("taxiDriver-" + JSON.stringify({
+                    ...locationRef.current, coords: {
+                        heading: heading.trueHeading,
+                        ...locationRef.current?.coords
+                    }
+                }))
+            }
+
+        }, 3000)
+
         return () => {
+            clearInterval(positionStreaming)
             if (ws.current?.readyState === WebSocket.OPEN) {
                 ws.current?.close();
                 ws.current?.removeEventListener("message", handleWebSocketMessage);
             }
             PositionSubscrition && PositionSubscrition.remove()
+            unsubscribe();
         };
     }, []);
 
@@ -131,6 +188,7 @@ const useMapConnection = () => {
         markers,
         setMarkers,
         ws,
+        sendMessageToServer,
         location,
         heading,
         handleWebSocketMessage,
@@ -166,8 +224,12 @@ CREATE TABLE Profile (
     id INT PRIMARY KEY,
     userId VARCHAR(255),
     marker_id INT,
-    userRole VARCHAR(255),
-    active BOOLEAN,
+    phone_number VARCHAR(255),
+    email VARCHAR(255),
+    userName VARCHAR(255),
+    alias VARCHAR(255),
+    userRole VARCHAR(255) DEFAULT 'client',
+    active BOOLEAN DEFAULT false,
     last_location_id INT NOT NULL,
     FOREIGN KEY (last_location_id) REFERENCES Location(id),
     FOREIGN KEY (marker_id) REFERENCES Marker(id)

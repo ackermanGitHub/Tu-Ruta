@@ -44,7 +44,7 @@ function handleNewConnection(ws: WebSocket, request: IncomingMessage) {
 
 
     ws.on('message', (message) => {
-        console.log("aaa");
+        console.log(message.toString());
         if (protocol === 'ordersSender') {
             broadcastToClientsByProtocol('ordersReciever', `ordersSender said: ${message}`);
         } else if (protocol === 'ordersReciever') {
@@ -52,9 +52,9 @@ function handleNewConnection(ws: WebSocket, request: IncomingMessage) {
         }
 
         if (protocol === 'map-client') {
-            const location: { coords: { accuracy: number, altitude: number, altitudeAccuracy: number, heading: number, latitude: number, longitude: number, speed: number }, mocked: boolean, timestamp: number, userId: string } = JSON.parse(message.toString())
+            // const location: { coords: { accuracy: number, altitude: number, altitudeAccuracy: number, heading: number, latitude: number, longitude: number, speed: number }, mocked: boolean, timestamp: number, userId: string } = JSON.parse(message.toString())
         } else if (protocol === 'map-worker') {
-            const location: { coords: { accuracy: number, altitude: number, altitudeAccuracy: number, heading: number, latitude: number, longitude: number, speed: number }, mocked: boolean, timestamp: number, userId: string } = JSON.parse(message.toString())
+            // const location: { coords: { accuracy: number, altitude: number, altitudeAccuracy: number, heading: number, latitude: number, longitude: number, speed: number }, mocked: boolean, timestamp: number, userId: string } = JSON.parse(message.toString())
             // broadcastToClientsByProtocol('map-client', recieved);
         }
 

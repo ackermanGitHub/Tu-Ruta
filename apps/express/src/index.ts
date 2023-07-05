@@ -76,3 +76,5 @@ App.get("/api/clients", async (req, res) => {
     }
   });
 });
+
+/* App.post('/addNewProfile') */

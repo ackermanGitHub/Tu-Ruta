@@ -20,6 +20,9 @@ const defineConfig = (): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: "your.bundle.identifier",
+    entitlements: {
+      "com.apple.developer.networking.wifi-info": true
+    }
   },
   android: {
     adaptiveIcon: {

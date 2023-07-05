@@ -18,8 +18,9 @@ import { type MarkerData } from '../constants/Markers';
 import useMapConnection from '../hooks/useMapConnection';
 
 import { View, Text } from '../styles/Themed';
-import { FontAwesome, MaterialIcons, Feather } from '@expo/vector-icons';
+import { FontAwesome, MaterialIcons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import Colors from '../styles/Colors';
+import NetInfo from '@react-native-community/netinfo';
 
 import { useUser } from '@clerk/clerk-expo';
 import useFadeIn from '../hooks/useFadeIn';
@@ -57,25 +58,7 @@ const MapViewComponent = () => {
     const { animatedValue: pressNavAnim, handlePressIn: pressInNav, handlePressOut: pressOutNav/* , isPressed: isNavPressed */ } = usePressIn()
     const [_isModalVisible, setIsModalVisible] = useState(false);
 
-    const { markers, location, heading, ws } = useMapConnection();
-    location?.coords
-
-    useEffect(() => {
-        const positionStreaming = setInterval(() => {
-            if (isSignedIn && isLoaded) {
-                ws.current?.send("taxiDriver-" + JSON.stringify({
-                    ...location, coords: {
-                        heading: heading.trueHeading,
-                        ...location?.coords
-                    }
-                }))
-            }
-        }, 3000)
-
-        return () => {
-            clearInterval(positionStreaming)
-        }
-    }, [])
+    const { markers, location, heading } = useMapConnection();
 
     useEffect(() => {
         if (selectedMarkerIndex !== null && mapViewRef.current) {
@@ -179,6 +162,12 @@ const MapViewComponent = () => {
                             pressOutNav();
                         }}
                         onPress={() => {
+
+                            void NetInfo.fetch().then(state => {
+                                console.log('Connection type', state.type);
+                                console.log('Is connected?', state.isConnected);
+                            });
+
                             if (location) {
                                 animateToRegion({
                                     latitude: location.coords.latitude,
@@ -187,6 +176,7 @@ const MapViewComponent = () => {
                                     latitudeDelta: 0.0033333,
                                 });
                             }
+
                         }}
                     >
                         <MaterialIcons
@@ -236,13 +226,16 @@ const MapViewComponent = () => {
                                         <Text className='font-bold text-lg'>Julio López</Text>
                                         <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@julydev</Text>
                                     </View>
-                                    <PressBtn onPress={() => {
-                                        console.log(user)
-                                    }}>
-                                        <View className='h-10 w-32 mt-3 mr-5 justify-center items-center rounded-2xl bg-zinc-300 dark:bg-zinc-900'>
-                                            <Text className='font-bold text-base'>Perfil Taxi</Text>
-                                        </View>
-                                    </PressBtn>
+                                    <View className='flex-row h-full justify-between items-center'>
+                                        <MaterialCommunityIcons name={colorScheme === 'dark' ? "message-text" : "message-text-outline"} size={24} />
+                                        <PressBtn onPress={() => {
+                                            console.log("assa")
+                                        }}>
+                                            <View className='h-10 w-32 mt-3 mr-5 justify-center items-center rounded-2xl bg-zinc-300 dark:bg-zinc-900'>
+                                                <Text className='font-bold text-base'>Taxi</Text>
+                                            </View>
+                                        </PressBtn>
+                                    </View>
                                 </View>
 
                                 <View className={'w-full mt-2 justify-start flex-row bg-transparent'}>

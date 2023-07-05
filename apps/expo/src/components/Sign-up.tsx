@@ -85,6 +85,17 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                 await setActive({ session: completePhoneSignUp.createdSessionId });
 
             }
+
+            /* await fetch('https://192.168.66.191:3333/addNewProfile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', 
+                },
+                body: JSON.stringify({
+                     
+                })
+            }) */
+
             navigation?.navigate('Map')
 
         } catch (err: any) {
