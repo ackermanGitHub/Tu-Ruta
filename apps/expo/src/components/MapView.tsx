@@ -30,6 +30,7 @@ import { useKeepAwake } from 'expo-keep-awake';
 import ProfileDropdown from './ProfileDropdown';
 import { PressBtn } from '../styles/PressBtn';
 import UserMarker from '../markers/UserMarker';
+import CarMarker from '../markers/CarMarker';
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
@@ -56,7 +57,25 @@ const MapViewComponent = () => {
     const { animatedValue: pressNavAnim, handlePressIn: pressInNav, handlePressOut: pressOutNav/* , isPressed: isNavPressed */ } = usePressIn()
     const [_isModalVisible, setIsModalVisible] = useState(false);
 
-    const { markers, location, heading } = useMapConnection();
+    const { markers, location, heading, ws } = useMapConnection();
+    location?.coords
+
+    useEffect(() => {
+        const positionStreaming = setInterval(() => {
+            if (isSignedIn && isLoaded) {
+                ws.current?.send("taxiDriver-" + JSON.stringify({
+                    ...location, coords: {
+                        heading: heading.trueHeading,
+                        ...location?.coords
+                    }
+                }))
+            }
+        }, 3000)
+
+        return () => {
+            clearInterval(positionStreaming)
+        }
+    }, [])
 
     useEffect(() => {
         if (selectedMarkerIndex !== null && mapViewRef.current) {
@@ -77,6 +96,7 @@ const MapViewComponent = () => {
     }
 
     const handleMarkerPress = (index: number) => {
+        setUserSelected(false);
         setSelectedMarkerIndex(index);
 
         handlePresentModal();
@@ -130,114 +150,52 @@ const MapViewComponent = () => {
 
                     {markers.map((marker: MarkerData, index: number) => {
                         return (
-                            <Marker
-                                draggable
-                                key={index}
-                                coordinate={marker.coordinate}
-                                onPress={() => handleMarkerPress(index)}
-                            >
-                                <Animated.View className={'items-center justify-center'}>
-                                    <Animated.Image
-                                        source={{
-                                            uri: 'https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c'
-                                        }}
-                                        className={'w-12 h-12 p-4 bg-slate-100 rounded-md'}
-                                        resizeMode="cover"
-                                    />
-                                </Animated.View>
-                            </Marker>
+                            <CarMarker key={index} onPress={() => handleMarkerPress(index)} coordinate={marker.coordinate} description='' title='' />
                         );
                     })}
 
-                    {/* {location &&
-                        <>
-                            <MarkerAnimated
-                                ref={userMarkerRef}
-                                coordinate={location.coords}
-                                anchor={{ x: 0.5, y: 0.5 }}
-                                onPress={() => {
-                                    openUserProfile();
-                                }}
-                            >
-                                <Animated.View className={'items-center justify-center w-12 h-12'} >
-                                    {
-                                        isSignedIn ?
-                                            <>
-                                                <Animated.Image className={'w-8 h-8 rounded-full'} source={{
-                                                    uri: "https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c"
-                                                }} resizeMode="cover" />
-                                            </>
-                                            :
-                                            <>
-                                                <FontAwesome
-                                                    name={colorScheme === 'light' ? 'user-circle' : 'user-circle-o'}
-                                                    size={30}
-                                                    color={Colors[colorScheme ?? 'light'].text}
-                                                />
-                                            </>
-                                    }
-                                </Animated.View>
-                            </MarkerAnimated  >
-                            {
-                                location && (
-                                    <Circle
-                                        center={{
-                                            latitude: location.coords.latitude,
-                                            longitude: location.coords.longitude,
-                                        }}
-                                        radius={location.coords.accuracy || 0}
-                                        strokeColor="#111111"
-                                        fillColor="rgba(26, 18, 11, 0.3)"
-                                    />
-                                )
-                            }
-
-                        </>
-                    } */}
                     {location && <UserMarker onPress={openUserProfile} coordinate={location.coords} description='' title='' userId='' heading={heading} />}
 
                 </MapView>
 
-                <>
-                    <Animated.View
-                        className={'bg-transparent absolute z-20 bottom-24 right-12 flex-row justify-center items-center text-center self-center rounded-full'}
-                        style={[
-                            {
-                                transform: [
-                                    {
-                                        scale: pressNavAnim
-                                    },
-                                ],
-                                opacity: fadeNavAnim,
-                            },
-                        ]}
+                <Animated.View
+                    className={'bg-transparent absolute z-20 bottom-24 right-12 flex-row justify-center items-center text-center self-center rounded-full'}
+                    style={[
+                        {
+                            transform: [
+                                {
+                                    scale: pressNavAnim
+                                },
+                            ],
+                            opacity: fadeNavAnim,
+                        },
+                    ]}
+                >
+                    <Pressable
+                        onPressIn={() => {
+                            pressInNav();
+                        }}
+                        onPressOut={() => {
+                            pressOutNav();
+                        }}
+                        onPress={() => {
+                            if (location) {
+                                animateToRegion({
+                                    latitude: location.coords.latitude,
+                                    longitude: location.coords.longitude,
+                                    longitudeDelta: 0.0033333,
+                                    latitudeDelta: 0.0033333,
+                                });
+                            }
+                        }}
                     >
-                        <Pressable
-                            onPressIn={() => {
-                                pressInNav();
-                            }}
-                            onPressOut={() => {
-                                pressOutNav();
-                            }}
-                            onPress={() => {
-                                if (location) {
-                                    animateToRegion({
-                                        latitude: location.coords.latitude,
-                                        longitude: location.coords.longitude,
-                                        longitudeDelta: 0.0033333,
-                                        latitudeDelta: 0.0033333,
-                                    });
-                                }
-                            }}
-                        >
-                            <MaterialIcons
-                                name={location ? 'my-location' : 'location-searching'}
-                                size={50}
-                                color={Colors[colorScheme ?? 'light'].text}
-                            />
-                        </Pressable>
-                    </Animated.View>
-                </>
+                        <MaterialIcons
+                            name={location ? 'my-location' : 'location-searching'}
+                            size={50}
+                            color={Colors[colorScheme ?? 'light'].text}
+                        />
+                    </Pressable>
+                </Animated.View>
 
                 <BottomSheetModal
                     ref={bottomSheetModalRef}
@@ -250,6 +208,51 @@ const MapViewComponent = () => {
                     }}
                 >
                     <View className={'w-full h-full rounded-t-3xl overflow-hidden'}>
+                        {selectedMarkerIndex !== null && !userSelected && (
+                            <View className='w-full h-full'>
+
+                                <Animated.Image
+                                    source={{
+                                        uri: 'https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c'
+                                    }}
+                                    className={'w-full h-48'}
+                                    resizeMode="cover"
+                                />
+
+                                <ProfileDropdown />
+
+                                <View className={'absolute left-5 top-40 border-2 border-solid border-white dark:border-black w-16 h-16 rounded-full overflow-hidden'}>
+                                    <Animated.Image
+                                        source={{
+                                            uri: 'https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c'
+                                        }}
+                                        className={'w-16 h-16'}
+                                        resizeMode="cover"
+                                    />
+                                </View>
+
+                                <View className={'w-full h-20 justify-between flex-row bg-transparent'}>
+                                    <View className='bg-transparent h-full justify-end ml-5'>
+                                        <Text className='font-bold text-lg'>Julio López</Text>
+                                        <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@julydev</Text>
+                                    </View>
+                                    <PressBtn onPress={() => {
+                                        console.log(user)
+                                    }}>
+                                        <View className='h-10 w-32 mt-3 mr-5 justify-center items-center rounded-2xl bg-zinc-300 dark:bg-zinc-900'>
+                                            <Text className='font-bold text-base'>Perfil Taxi</Text>
+                                        </View>
+                                    </PressBtn>
+                                </View>
+
+                                <View className={'w-full mt-2 justify-start flex-row bg-transparent'}>
+                                    <View className='bg-transparent h-full justify-start mx-5'>
+                                        <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ipsum recusandae similique, at porro quisquam enim officiis nam iure, tempora perspiciatis laborum ducimus fugiat voluptatibus eum saepe cumqu</Text>
+                                    </View>
+                                </View>
+
+                            </View>
+                        )}
                         {userSelected && isSignedIn && isLoaded && (
                             <View className='w-full h-full'>
 
@@ -286,13 +289,11 @@ const MapViewComponent = () => {
                                         </View>
                                     </PressBtn>
                                 </View>
-
                                 <View className={'w-full mt-2 justify-start flex-row bg-transparent'}>
                                     <View className='bg-transparent h-full justify-start mx-5'>
                                         <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ipsum recusandae similique, at porro quisquam enim officiis nam iure, tempora perspiciatis laborum ducimus fugiat voluptatibus eum saepe cumqu</Text>
                                     </View>
                                 </View>
-
                             </View>
                         )}
                     </View>
