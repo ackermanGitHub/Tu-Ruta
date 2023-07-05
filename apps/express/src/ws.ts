@@ -2,6 +2,7 @@ import WebSocket from "ws";
 import { httpServer } from "./app";
 import ClientsMap from "./data";
 import { IncomingMessage } from "http";
+import { pool } from "./db";
 
 const wsServer = new WebSocket.Server({ noServer: true })
 
@@ -22,6 +23,7 @@ function handleNewConnection(ws: WebSocket, request: IncomingMessage) {
         return;
     }
 
+    console.log(`New connection with protocol: ${protocol}`);
     let clientSet = ClientsMap.get(protocol);
 
     if (!clientSet) {
@@ -30,7 +32,19 @@ function handleNewConnection(ws: WebSocket, request: IncomingMessage) {
     }
     clientSet.add(ws);
 
+    if (protocol === 'map-client') {
+        pool.query(
+            'SELECT FROM Profile WHERE active = $1',
+            [true]
+        ).then((res) => {
+            console.log(res.rows)
+            // ws.send("taxisActives-" + JSON.stringify(res.rows))
+        });
+    }
+
+
     ws.on('message', (message) => {
+        console.log("aaa");
         if (protocol === 'ordersSender') {
             broadcastToClientsByProtocol('ordersReciever', `ordersSender said: ${message}`);
         } else if (protocol === 'ordersReciever') {
@@ -39,12 +53,9 @@ function handleNewConnection(ws: WebSocket, request: IncomingMessage) {
 
         if (protocol === 'map-client') {
             const location: { coords: { accuracy: number, altitude: number, altitudeAccuracy: number, heading: number, latitude: number, longitude: number, speed: number }, mocked: boolean, timestamp: number, userId: string } = JSON.parse(message.toString())
-            console.log(location)
-            broadcastToClientsByProtocol('map-worker', JSON.stringify(location));
         } else if (protocol === 'map-worker') {
             const location: { coords: { accuracy: number, altitude: number, altitudeAccuracy: number, heading: number, latitude: number, longitude: number, speed: number }, mocked: boolean, timestamp: number, userId: string } = JSON.parse(message.toString())
-            console.log(location)
-            broadcastToClientsByProtocol('map-client', JSON.stringify(location));
+            // broadcastToClientsByProtocol('map-client', recieved);
         }
 
     });

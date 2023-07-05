@@ -8,7 +8,6 @@ import { useAtom, atom } from 'jotai'
 import { atomWithStorage, createJSONStorage } from 'jotai/utils'
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { z } from 'zod'
 
 const storedMarkers = createJSONStorage<MarkerData[]>(() => AsyncStorage)
 const markersAtom = atomWithStorage<MarkerData[]>('markers', initialMarkers, storedMarkers)
@@ -37,6 +36,10 @@ const useMapConnection = () => {
 
     const { user, isLoaded, isSignedIn } = useUser()
 
+    const printUser = () => {
+        console.log(user)
+    }
+
     const getLocation = () => {
         return Location.getCurrentPositionAsync({});
     }
@@ -46,13 +49,17 @@ const useMapConnection = () => {
     }
 
     const handleWebSocketMessage = useCallback((event: MessageEvent<string>) => {
-        console.log(JSON.parse(event.data));
+
+        // event.data.startsWith("markers-") ? void setMarkers(JSON.parse(event.data.replace("markers-", ""))) : null;
+
+        // event.data.startsWith("taxisActives-") ? void setMarkers(JSON.parse(event.data.replace("markers-", ""))) : null;
+
     }, []);
 
     useEffect(() => {
 
         const asyncWebSocket = async () => {
-            const protocol = (await AsyncStorage.getItem('userRole'))?.includes("client") ? 'map-client' : 'map-taxi';
+            const protocol = (await AsyncStorage.getItem('userRole'))?.includes("client") ? 'map-client' : 'map-worker';
 
             ws.current = new WebSocket("ws://192.168.66.191:3333", protocol);
 
@@ -74,7 +81,6 @@ const useMapConnection = () => {
         void asyncWebSocket()
 
         let PositionSubscrition: Location.LocationSubscription | undefined = undefined;
-        let HeadingSuscription: NodeJS.Timer | undefined = undefined;
 
         const trackPosition = async () => {
             const { status } = await Location.requestForegroundPermissionsAsync();
@@ -88,18 +94,18 @@ const useMapConnection = () => {
             PositionSubscrition = await Location.watchPositionAsync(
                 {
                     accuracy: Location.Accuracy.BestForNavigation,
-                    timeInterval: 2000,
+                    timeInterval: 3000,
                 },
-                async (newLocation) => {
-                    setLocation(newLocation);
-
-                    await setHistoryLocation(async (oldHistoryLocation) => [...((await oldHistoryLocation) || []), newLocation]);
-                    // sends the location with the userId if the user is logged in
-                    if (ws.current?.readyState === WebSocket.OPEN) {
-                        if (isLoaded && isSignedIn) {
-                            ws.current?.send(JSON.stringify({ ...newLocation, userId: user?.id }));
-                        }
-                    }
+                (newLocation) => {
+                    void setHistoryLocation(async (oldHistoryLocation) => [...((await oldHistoryLocation) || []), newLocation])
+                    getHeading()
+                        .then((heading) => {
+                            setHeading(heading);
+                            setLocation({ ...newLocation, coords: { ...newLocation.coords, heading: heading.trueHeading } })
+                        })
+                        .catch((error) => {
+                            console.log(error)
+                        })
                 },
 
             )
@@ -107,18 +113,6 @@ const useMapConnection = () => {
             const firstLocation = await getLocation()
             await setHistoryLocation([...(historyLocation || []), firstLocation])
             setLocation(firstLocation);
-
-            HeadingSuscription = setInterval(() => {
-
-                getHeading()
-                    .then(heading => {
-                        setHeading(heading);
-                    })
-                    .catch(error => {
-                        console.error(error)
-                    })
-
-            }, 2000)
 
         }
 
@@ -130,14 +124,13 @@ const useMapConnection = () => {
                 ws.current?.removeEventListener("message", handleWebSocketMessage);
             }
             PositionSubscrition && PositionSubscrition.remove()
-            clearTimeout(HeadingSuscription)
         };
     }, []);
 
     return {
         markers,
         setMarkers,
-        ws: ws.current,
+        ws,
         location,
         heading,
         handleWebSocketMessage,
@@ -173,6 +166,8 @@ CREATE TABLE Profile (
     id INT PRIMARY KEY,
     userId VARCHAR(255),
     marker_id INT,
+    userRole VARCHAR(255),
+    active BOOLEAN,
     last_location_id INT NOT NULL,
     FOREIGN KEY (last_location_id) REFERENCES Location(id),
     FOREIGN KEY (marker_id) REFERENCES Marker(id)
