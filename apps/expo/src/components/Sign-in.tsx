@@ -18,6 +18,8 @@ export default function SignIn({ navigation }: { navigation?: DrawerNavigationPr
     const [credential, setCredential] = useState('');
     const [password, setPassword] = useState('');
 
+    const [inputFocused, setInputFocused] = useState(true)
+
     const handleSignIn = async () => {
         if (!isLoaded) {
             throw new Error("useSignIn isn't loaded")
@@ -41,14 +43,14 @@ export default function SignIn({ navigation }: { navigation?: DrawerNavigationPr
             <Stack.Screen options={{
                 title: 'Sign In',
             }} />
-            <View className='w-3/4 items-center justify-center font-[Inter-Regular]'>
+            {inputFocused && <View className='w-3/4 items-center justify-center font-[Inter-Regular]'>
                 <Image
                     source={TuRutaImg}
                     alt='Tu-Ruta Logo'
                     className={`h-16 w-14`}
                 />
                 <Text className='font-bold text-3xl my-4 text-center'>Iniciar Sesión en La Ruta</Text>
-            </View>
+            </View>}
             <SignWithOAuth action={'sign-up'} />
             <View className={'w-4/5 mb-4 max-w-[320px]'}>
                 <TextInput
@@ -72,7 +74,7 @@ export default function SignIn({ navigation }: { navigation?: DrawerNavigationPr
             </View>
 
             <PressBtn onPress={() => { void handleSignIn() }} className={'w-[240px] max-w-[280px] bg-[#FCCB6F] my-2 dark:bg-white rounded-3xl h-12 justify-center items-center'} >
-                <Text className={'dark:text-black text-white font-bold text-lg'}>Iniciar Sesión</Text>
+                <Text darkColor="black" className={'font-bold text-lg'}>Iniciar Sesión</Text>
             </PressBtn>
             <Pressable className={'my-4 flex-row items-center justify-center'} onPress={() => { navigation && navigation.navigate('Sign-Up') }}>
                 <Text className={'text-sm font-light dark:text-gray-400'}>No Tienes Cuenta?</Text>

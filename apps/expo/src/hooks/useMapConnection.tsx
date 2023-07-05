@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { type MarkerData, initialMarkers } from '../constants/Markers';
 import * as Location from 'expo-location';
 import { useUser } from '@clerk/clerk-expo';
@@ -15,14 +15,6 @@ const markersAtom = atomWithStorage<MarkerData[]>('markers', initialMarkers, sto
 
 const storedHistoryLocation = createJSONStorage<Location.LocationObject[] | undefined>(() => AsyncStorage)
 const historyLocationAtom = atomWithStorage<Location.LocationObject[] | undefined>('historyLocation', undefined, storedHistoryLocation)
-
-export const getLocation = () => {
-    return Location.getCurrentPositionAsync({});
-}
-
-export const getHeading = () => {
-    return Location.getHeadingAsync();
-}
 
 const locationAtom = atom<Location.LocationObject | undefined>(undefined);
 const headingAtom = atom<Location.LocationHeadingObject>({
@@ -41,39 +33,48 @@ const useMapConnection = () => {
     // const [isReady, setIsReady] = useState(false);
     // const [error, setError] = useState<string | null>(null);
 
-    const [ws, setWs] = useState<WebSocket | null>(null);
+    const ws = useRef<WebSocket | null>(null);
 
     const { user, isLoaded, isSignedIn } = useUser()
 
-    const handleWebSocketMessage = (event: MessageEvent<string>) => {
-        console.log(JSON.parse(event.data))
-    };
+    const getLocation = () => {
+        return Location.getCurrentPositionAsync({});
+    }
+
+    const getHeading = () => {
+        return Location.getHeadingAsync();
+    }
+
+    const handleWebSocketMessage = useCallback((event: MessageEvent<string>) => {
+        console.log(JSON.parse(event.data));
+    }, []);
 
     useEffect(() => {
 
         const asyncWebSocket = async () => {
             const protocol = (await AsyncStorage.getItem('userRole'))?.includes("client") ? 'map-client' : 'map-taxi';
-            const wsGate = new WebSocket("ws://192.168.1.102:3333", protocol);
 
-            wsGate.addEventListener("open", (event) => {
+            ws.current = new WebSocket("ws://192.168.66.191:3333", protocol);
+
+            ws.current.addEventListener("open", (event) => {
                 console.log('%c Connection opened', 'background: orange; color: black;', event);
             });
 
-            wsGate.addEventListener('message', handleWebSocketMessage);
+            ws.current.addEventListener('message', handleWebSocketMessage);
 
-            wsGate.addEventListener('close', (event) => {
+            ws.current.addEventListener('close', (event) => {
                 console.log('%c Connection closed', 'background: orange; color: black;', event);
             });
 
-            wsGate.addEventListener('error', (error) => {
+            ws.current.addEventListener('error', (error) => {
                 console.log('%c WebSocket error', 'background: red; color: black;', error);
             });
 
-            setWs(wsGate);
         }
-        asyncWebSocket()
+        void asyncWebSocket()
 
-        let PositionSubscrition: Location.LocationSubscription;
+        let PositionSubscrition: Location.LocationSubscription | undefined = undefined;
+        let HeadingSuscription: NodeJS.Timer | undefined = undefined;
 
         const trackPosition = async () => {
             const { status } = await Location.requestForegroundPermissionsAsync();
@@ -87,19 +88,16 @@ const useMapConnection = () => {
             PositionSubscrition = await Location.watchPositionAsync(
                 {
                     accuracy: Location.Accuracy.BestForNavigation,
-                    timeInterval: 5000,
+                    timeInterval: 2000,
                 },
                 async (newLocation) => {
-
-                    console.log(await AsyncStorage.getItem('userRole'))
-
                     setLocation(newLocation);
-                    await setHistoryLocation(async (oldHistoryLocation) => [...((await oldHistoryLocation) || []), newLocation]);
 
+                    await setHistoryLocation(async (oldHistoryLocation) => [...((await oldHistoryLocation) || []), newLocation]);
                     // sends the location with the userId if the user is logged in
-                    if (ws?.readyState === WebSocket.OPEN) {
+                    if (ws.current?.readyState === WebSocket.OPEN) {
                         if (isLoaded && isSignedIn) {
-                            ws?.send(JSON.stringify({ ...newLocation, userId: user?.id }));
+                            ws.current?.send(JSON.stringify({ ...newLocation, userId: user?.id }));
                         }
                     }
                 },
@@ -108,35 +106,40 @@ const useMapConnection = () => {
 
             const firstLocation = await getLocation()
             await setHistoryLocation([...(historyLocation || []), firstLocation])
+            setLocation(firstLocation);
 
-            const firstHeading = await getHeading()
-            setHeading(firstHeading);
+            HeadingSuscription = setInterval(() => {
+
+                getHeading()
+                    .then(heading => {
+                        setHeading(heading);
+                    })
+                    .catch(error => {
+                        console.error(error)
+                    })
+
+            }, 2000)
 
         }
 
-        trackPosition()
-            .then(() => {
-                console.log("tracking started")
-            })
-            .catch(err => {
-                console.error(err)
-            })
+        void trackPosition()
 
         return () => {
-            if (ws?.readyState === WebSocket.OPEN) {
-                ws?.close();
-                ws?.removeEventListener("message", handleWebSocketMessage);
+            if (ws.current?.readyState === WebSocket.OPEN) {
+                ws.current?.close();
+                ws.current?.removeEventListener("message", handleWebSocketMessage);
             }
             PositionSubscrition && PositionSubscrition.remove()
+            clearTimeout(HeadingSuscription)
         };
     }, []);
 
     return {
         markers,
         setMarkers,
-        ws,
-        setWs,
+        ws: ws.current,
         location,
+        heading,
         handleWebSocketMessage,
         historyLocation,
     }

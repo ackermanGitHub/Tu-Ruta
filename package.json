@@ -1,7 +1,6 @@
 {
     "name": "t3-turbo-and-clerk",
     "private": true,
-    "packageManager": "pnpm@7.13.0",
     "scripts": {
         "build": "turbo build",
         "clean": "rm -rf node_modules",
@@ -25,10 +24,5 @@
         "prettier-plugin-tailwindcss": "^0.1.13",
         "turbo": "^1.8.8",
         "typescript": "^4.9.5"
-    },
-    "pnpm": {
-        "patchedDependencies": {
-            "react-native@0.70.5": "patches/react-native@0.70.5.patch"
-        }
     }
 }

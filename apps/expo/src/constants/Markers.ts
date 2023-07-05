@@ -5,10 +5,16 @@ export interface MarkerData {
     coordinate: {
         latitude: number;
         longitude: number;
+        heading?: number | null;
+        accuracy?: number | null;
+        altitude?: number | null;
+        speed?: number | null;
+        altitudeAccuracy?: number | null;
     };
     title: string;
     description: string;
     image: any;
+    userId?: string;
 }
 
 export const initialMarkers: MarkerData[] = [

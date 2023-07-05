@@ -142,30 +142,6 @@ export default function Home() {
                         }} {...props}
                     >
 
-                        {/* Profile DropDown Modal */}
-                        {/* <Animated.View
-                            className='absolute justify-around right-5 top-20 bg-white dark:bg-zinc-800 border border-solid border-zinc-400 rounded-md w-32 h-40 z-40'
-                            style={[
-                                {
-                                    transform: [{ scale: dropdownVisible }],
-                                },
-                            ]}
-                        >
-
-                            <Pressable onPress={() => { console.log("Editar Foto") }}>
-                                <Text>Cambiar Foto</Text>
-                            </Pressable>
-
-                            <Pressable onPress={() => { console.log("Editar Nombre") }}>
-                                <Text>Cambiar Nombre</Text>
-                            </Pressable>
-
-                            <Pressable onPress={() => { console.log("Cerrar Sesión") }}>
-                                <Text>Cerrar Sesión</Text>
-                            </Pressable>
-
-                        </Animated.View> */}
-
                         <DrawerItem style={{
                             width: '100%',
                             marginHorizontal: 0,
@@ -196,7 +172,7 @@ export default function Home() {
                                             color={Colors[colorScheme ?? 'light'].text}
                                         />
                                         <PressBtn onPress={() => {
-
+                                            navigation.navigate('Sign-In')
                                         }} className={`w-[60px] max-w-[120px] ml-5 bg-slate-500 dark:bg-slate-700 rounded h-8 justify-center items-center`} >
                                             <Text className={`text-white`}>Sign In</Text>
                                         </PressBtn>
@@ -217,17 +193,6 @@ export default function Home() {
                                         />
                                         <Text className="ml-5">{`${user.firstName} ${user.lastName}`}</Text>
                                     </View>
-
-                                    {/* Deopdown trigger */}
-                                    {/* <Pressable
-                                        onPress={handleOpenDropdown}
-                                    >
-                                        <Feather
-                                            name='more-vertical'
-                                            size={20}
-                                            color={Colors[colorScheme ?? 'light'].text}
-                                        />
-                                    </Pressable> */}
 
                                 </View>
 

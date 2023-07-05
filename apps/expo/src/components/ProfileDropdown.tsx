@@ -1,37 +1,29 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import {
-    Text,
-    View,
-    ActivityIndicator,
     Pressable,
     Animated,
+    TouchableWithoutFeedback
 } from 'react-native';
-import { Feather, FontAwesome } from '@expo/vector-icons';
+import { Text } from '../styles/Themed';
+import { Feather } from '@expo/vector-icons';
 import Colors from '../styles/Colors';
 import { useColorScheme } from 'nativewind';
-import { PressBtn } from '../styles/PressBtn';
-import { useUser } from '@clerk/clerk-expo';
-import { Image } from 'expo-image';
+import { useUser, useSignIn, useSession } from '@clerk/clerk-expo';
 
 const ProfileDropdown = () => {
-    const DropdownButton = useRef<View>(null);
-    const [dropdownTop, setDropdownTop] = useState(0);
-    const dropdownVisible = useRef(new Animated.Value(1)).current;
-
+    const dropdownVisible = useRef(new Animated.Value(0)).current;
+    const [isOpen, setIsOpen] = React.useState(false);
     const { colorScheme } = useColorScheme()
-
     const { user, isLoaded, isSignedIn } = useUser();
-
+    const { session } = useSession();
 
     const handleOpenDropdown = () => {
+        setIsOpen(() => true)
         Animated.timing(dropdownVisible, {
             toValue: 1,
             duration: 175,
             useNativeDriver: true,
         }).start();
-        DropdownButton?.current?.measure((_fx: number, _fy: number, _w: number, h: number, _px: number, py: number) => {
-            setDropdownTop(py + h);
-        });
     };
 
     const handleCloseDropdown = () => {
@@ -39,86 +31,57 @@ const ProfileDropdown = () => {
             toValue: 0,
             duration: 150,
             useNativeDriver: true,
-        }).start();
+        }).start(() => {
+            setIsOpen(() => false)
+        });
     };
-
-    if (!isLoaded) {
-        return (
-            <View className={'w-full flex-row justify-start items-center bg-transparent px-5'}>
-                <ActivityIndicator
-                    size={'large'}
-                    animating
-                    color={colorScheme === 'dark' ? 'white' : 'black'}
-                />
-            </View>
-        )
-    }
-
-    if (!isSignedIn) {
-        return (
-            <View className={'w-full flex-row justify-start items-center bg-transparent px-5'}>
-                <FontAwesome
-                    name={colorScheme === 'light' ? 'user-circle' : 'user-circle-o'}
-                    size={30}
-                    color={Colors[colorScheme ?? 'light'].text}
-                />
-                <PressBtn onPress={() => {
-                    console.log("sign in")
-                }} className={`w-[60px] max-w-[120px] ml-5 bg-slate-500 dark:bg-slate-700 rounded h-8 justify-center items-center`} >
-                    <Text className={`text-white`}>Sign In</Text>
-                </PressBtn>
-            </View>
-        )
-    }
 
     return (
         <>
-            <View className={`w-full justify-between flex-row items-center bg-transparent px-5`}>
-
-                <View className="w-full bg-transparent flex-row items-center">
-                    <Image
-                        source={{
-                            uri: "https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c"
-                        }}
-                        alt="Profile Image"
-                        className={`w-8 h-8 rounded-full`}
-                    />
-                    <Text className="ml-5">{`${user.firstName} ${user.lastName}`}</Text>
-                </View>
-                <Pressable
-                    ref={DropdownButton}
-                    onPress={handleOpenDropdown}
-                >
-                    <Feather
-                        name='more-vertical'
-                        size={20}
-                        color={Colors[colorScheme ?? 'light'].text}
-                    />
-                </Pressable>
-
-            </View>
-
-            <Animated.View
-                className='absolute left-0 top-0 bg-red-500 dark:bg-zinc-800 shadow-sm dark:shadow-zinc-300 rounded-md w-64 h-64'
-                style={[
-                    /* {
-                        top: dropdownTop
-                    }, */
-                    {
-                        transform: [{ scale: dropdownVisible }],
-                    },
-                ]}
+            <Pressable
+                onPress={handleOpenDropdown}
+                className='w-8 h-8 absolute justify-center items-center rounded-full right-5 top-5 z-20'
+                style={{
+                    backgroundColor: colorScheme === 'light' ? 'rgba(203,213,225,0.7)' : 'rgba(26,18,11,0.7)',
+                }}
             >
-                <Pressable onPress={() => { console.log("Cerrar Sesión") }}>
-                    <Text>Cerrar Sesión</Text>
-                </Pressable>
-                <Pressable onPress={() => { handleCloseDropdown() }}>
-                    <Text>Cambiar Imagen</Text>
-                </Pressable>
-                <Pressable onPress={() => { console.log("Cambiar Nombre") }}>
-                    <Text>Cambiar Nombre</Text>
-                </Pressable>
-            </Animated.View>
+                <Feather
+                    name='more-vertical'
+                    size={20}
+                    color={Colors[colorScheme ?? 'light'].text}
+                />
+            </Pressable>
+
+            {isOpen && <Pressable onPress={handleCloseDropdown} className='w-full h-full absolute z-20'>
+                <TouchableWithoutFeedback className='w-full h-full'>
+                    <Animated.View
+                        className='absolute z-30 pl-4 right-5 top-5 justify-evenly bg-gray-200 dark:bg-zinc-900 shadow-sm dark:shadow-zinc-300 rounded-md w-40 h-44'
+                        style={[
+                            {
+                                transform: [
+                                    { scale: dropdownVisible },
+                                ],
+                                opacity: dropdownVisible.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [0, 1],
+                                })
+                            },
+                        ]}
+                    >
+                        <Pressable onPress={() => { user }}>
+                            <Text className='text-sm '>Cambiar Imagen</Text>
+                        </Pressable>
+                        <Pressable onPress={() => { console.log("Cambiar Nombre") }}>
+                            <Text className='text-sm '>Cambiar Nombre</Text>
+                        </Pressable>
+                        <Pressable onPress={() => {
+                            session?.remove()
+                        }}>
+                            <Text className='text-sm '>Cerrar Sesión</Text>
+                        </Pressable>
+                    </Animated.View>
+                </TouchableWithoutFeedback>
+            </Pressable>}
 
         </>
     )

@@ -79,7 +79,7 @@ const SignWithOAuth = ({ action }: { action: 'sign-in' | 'sign-up' }) => {
         </PressBtn>
         <PressBtn onPress={appleSignHandler} className={'w-[240px] flex-row max-w-[280px] bg-[#111111] my-2 dark:bg-white rounded-3xl h-12 justify-center items-center'}>
           <AntDesign name="apple1" size={24} color={colorScheme === "dark" ? "black" : "white"} />
-          <Text className={'dark:text-black text-white ml-3 font-medium text-base'}>Usar Apple</Text>
+          <Text lightColor="white" darkColor="black" className={'ml-3 font-medium text-base'}>Usar Apple</Text>
         </PressBtn>
       </View>
       <View className="h-11 w-4/5 flex-row items-center justify-around">

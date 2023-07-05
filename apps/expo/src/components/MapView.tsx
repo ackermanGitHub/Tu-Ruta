@@ -17,8 +17,8 @@ import MapView, { Circle, Marker, type MapMarker, type Region, MarkerAnimated } 
 import { type MarkerData } from '../constants/Markers';
 import useMapConnection from '../hooks/useMapConnection';
 
-import { View } from '../styles/Themed';
-import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { View, Text } from '../styles/Themed';
+import { FontAwesome, MaterialIcons, Feather } from '@expo/vector-icons';
 import Colors from '../styles/Colors';
 
 import { useUser } from '@clerk/clerk-expo';
@@ -27,6 +27,9 @@ import usePressIn from '../hooks/usePressIn';
 import { useColorScheme } from 'nativewind';
 
 import { useKeepAwake } from 'expo-keep-awake';
+import ProfileDropdown from './ProfileDropdown';
+import { PressBtn } from '../styles/PressBtn';
+import UserMarker from '../markers/UserMarker';
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
@@ -53,7 +56,7 @@ const MapViewComponent = () => {
     const { animatedValue: pressNavAnim, handlePressIn: pressInNav, handlePressOut: pressOutNav/* , isPressed: isNavPressed */ } = usePressIn()
     const [_isModalVisible, setIsModalVisible] = useState(false);
 
-    const { markers, location, /* setLocation, historyLocation */ } = useMapConnection();
+    const { markers, location, heading } = useMapConnection();
 
     useEffect(() => {
         if (selectedMarkerIndex !== null && mapViewRef.current) {
@@ -146,7 +149,7 @@ const MapViewComponent = () => {
                         );
                     })}
 
-                    {location &&
+                    {/* {location &&
                         <>
                             <MarkerAnimated
                                 ref={userMarkerRef}
@@ -188,8 +191,10 @@ const MapViewComponent = () => {
                                     />
                                 )
                             }
+
                         </>
-                    }
+                    } */}
+                    {location && <UserMarker onPress={openUserProfile} coordinate={location.coords} description='' title='' userId='' heading={heading} />}
 
                 </MapView>
 
@@ -238,8 +243,7 @@ const MapViewComponent = () => {
                     ref={bottomSheetModalRef}
                     index={1}
                     snapPoints={snapPoints}
-                    backgroundStyle={{ borderRadius: 50, backgroundColor: '#555555' }}
-
+                    backgroundStyle={{ borderRadius: 50, backgroundColor: colorScheme === 'light' ? 'rgba(203,213,225,0.8)' : 'rgba(26,18,11,0.5)' }}
                     onDismiss={() => {
                         setIsModalVisible(false)
                         setUserSelected(false)
@@ -247,7 +251,8 @@ const MapViewComponent = () => {
                 >
                     <View className={'w-full h-full rounded-t-3xl overflow-hidden'}>
                         {userSelected && isSignedIn && isLoaded && (
-                            <View className='w-full h-56 relative'>
+                            <View className='w-full h-full'>
+
                                 <Animated.Image
                                     source={{
                                         uri: 'https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c'
@@ -255,7 +260,10 @@ const MapViewComponent = () => {
                                     className={'w-full h-48'}
                                     resizeMode="cover"
                                 />
-                                <View className={'absolute left-5 bottom-2 border-2 border-solid border-white dark:border-black w-16 h-16 rounded-full overflow-hidden'}>
+
+                                <ProfileDropdown />
+
+                                <View className={'absolute left-5 top-40 border-2 border-solid border-white dark:border-black w-16 h-16 rounded-full overflow-hidden'}>
                                     <Animated.Image
                                         source={{
                                             uri: 'https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c'
@@ -264,6 +272,27 @@ const MapViewComponent = () => {
                                         resizeMode="cover"
                                     />
                                 </View>
+
+                                <View className={'w-full h-20 justify-between flex-row bg-transparent'}>
+                                    <View className='bg-transparent h-full justify-end ml-5'>
+                                        <Text className='font-bold text-lg'>Julio López</Text>
+                                        <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@julydev</Text>
+                                    </View>
+                                    <PressBtn onPress={() => {
+                                        console.log("assa")
+                                    }}>
+                                        <View className='h-10 w-32 mt-3 mr-5 justify-center items-center rounded-2xl bg-zinc-300 dark:bg-zinc-900'>
+                                            <Text className='font-bold text-base'>Editar Perfil</Text>
+                                        </View>
+                                    </PressBtn>
+                                </View>
+
+                                <View className={'w-full mt-2 justify-start flex-row bg-transparent'}>
+                                    <View className='bg-transparent h-full justify-start mx-5'>
+                                        <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ipsum recusandae similique, at porro quisquam enim officiis nam iure, tempora perspiciatis laborum ducimus fugiat voluptatibus eum saepe cumqu</Text>
+                                    </View>
+                                </View>
+
                             </View>
                         )}
                     </View>
