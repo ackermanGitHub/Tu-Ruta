@@ -2,9 +2,12 @@ import WebSocket from "ws";
 import { httpServer } from "./app";
 import ClientsMap from "./data";
 import { IncomingMessage } from "http";
-import { pool } from "./db";
 
 const wsServer = new WebSocket.Server({ noServer: true })
+
+/* const streamSuscription = setInterval(async () => {
+
+}, 3000) */
 
 wsServer.on('connection', handleNewConnection);
 
@@ -18,42 +21,42 @@ function handleNewConnection(ws: WebSocket, request: IncomingMessage) {
     const protocol = request.headers['sec-websocket-protocol'];
 
     if (!protocol) {
-        ws.close(404, "No protocol specified");
-        console.log('No protocol specified');
+        ws.close(undefined, "No protocol specified");
+        console.log('No protocol specified', protocol);
+        return;
+    }
+
+    if (!protocol.includes('map-client') && !protocol.includes('map-worker')) {
+        ws.close(undefined, "Protocol not Suported");
+        console.log('Protocol not Suported', protocol);
         return;
     }
 
     console.log(`New connection with protocol: ${protocol}`);
-    let clientSet = ClientsMap.get(protocol);
 
-    if (!clientSet) {
-        clientSet = new Set<WebSocket>();
-        ClientsMap.set(protocol, clientSet);
-    }
-    clientSet.add(ws);
-
-    if (protocol === 'map-client') {
-        pool.query(
-            'SELECT FROM Profile WHERE active = $1',
-            [true]
-        ).then((res) => {
-            console.log(res.rows)
-            // ws.send("taxisActives-" + JSON.stringify(res.rows))
-        });
+    if (protocol.includes('map-client-')) {
+        let clientsSet = ClientsMap.get('map-client');
+        if (!clientsSet) {
+            clientsSet = new Set<{ ws: WebSocket, profileId: string }>();
+            ClientsMap.set('map-client', clientsSet);
+        }
+        clientsSet.add({ ws, profileId: protocol.replace('map-client-', '') });
     }
 
+    if (protocol.includes('map-worker-')) {
+        let clientsSet = ClientsMap.get('map-worker');
+        if (!clientsSet) {
+            clientsSet = new Set<{ ws: WebSocket, profileId: string }>();
+            ClientsMap.set('map-worker', clientsSet);
+        }
+        clientsSet.add({ ws, profileId: protocol.replace('map-worker-', '') });
+    }
 
     ws.on('message', (message) => {
-        console.log(message.toString());
-        if (protocol === 'ordersSender') {
-            broadcastToClientsByProtocol('ordersReciever', `ordersSender said: ${message}`);
-        } else if (protocol === 'ordersReciever') {
-            broadcastToClientsByProtocol('ordersSender', `ordersReciever said: ${message}`);
-        }
 
-        if (protocol === 'map-client') {
+        if (protocol.includes('map-client-')) {
             // const location: { coords: { accuracy: number, altitude: number, altitudeAccuracy: number, heading: number, latitude: number, longitude: number, speed: number }, mocked: boolean, timestamp: number, userId: string } = JSON.parse(message.toString())
-        } else if (protocol === 'map-worker') {
+        } else if (protocol.includes('map-worker-')) {
             // const location: { coords: { accuracy: number, altitude: number, altitudeAccuracy: number, heading: number, latitude: number, longitude: number, speed: number }, mocked: boolean, timestamp: number, userId: string } = JSON.parse(message.toString())
             // broadcastToClientsByProtocol('map-client', recieved);
         }
@@ -63,10 +66,10 @@ function handleNewConnection(ws: WebSocket, request: IncomingMessage) {
     ws.on('error', (error) => {
         console.error(`WebSocket error: ${error}`);
         // Remove the client from the list of connected clients
-        const clientSet = ClientsMap.get(protocol);
-        if (clientSet) {
-            clientSet.delete(ws);
-            if (clientSet.size === 0) {
+        const clientsSet = ClientsMap.get(protocol);
+        if (clientsSet) {
+            clientsSet.delete({ ws });
+            if (clientsSet.size === 0) {
                 ClientsMap.delete(protocol);
             }
         }
@@ -74,10 +77,10 @@ function handleNewConnection(ws: WebSocket, request: IncomingMessage) {
 
     ws.on('close', () => {
         // Remove the client from the list of connected clients
-        const clientSet = ClientsMap.get(protocol);
-        if (clientSet) {
-            clientSet.delete(ws);
-            if (clientSet.size === 0) {
+        const clientsSet = ClientsMap.get(protocol);
+        if (clientsSet) {
+            clientsSet.delete({ ws });
+            if (clientsSet.size === 0) {
                 ClientsMap.delete(protocol);
             }
         }
@@ -85,11 +88,11 @@ function handleNewConnection(ws: WebSocket, request: IncomingMessage) {
 }
 
 function broadcastToClientsByProtocol(protocol: string, message: string) {
-    const clientSet = ClientsMap.get(protocol);
-    if (clientSet) {
-        clientSet.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(message);
+    const clientsSet = ClientsMap.get(protocol);
+    if (clientsSet) {
+        clientsSet.forEach((client) => {
+            if (client.ws.readyState === WebSocket.OPEN) {
+                client.ws.send(message);
             }
         });
     } else {

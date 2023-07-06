@@ -32,14 +32,13 @@ import PaymentScreen from '../components/Payment';
 import { useColorScheme } from 'nativewind';
 import SignUp from "../components/Sign-up";
 
+import { useRouter } from "expo-router";
 
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { atomWithStorage, createJSONStorage } from 'jotai/utils'
-import { useAtom, atom } from 'jotai'
+import { useAtom } from 'jotai'
 import { useRef } from "react";
-
-const storedProfileRole = createJSONStorage<'taxi' | 'client'>(() => AsyncStorage)
-export const profileRoleAtom = atomWithStorage<'taxi' | 'client'>('userRole', "taxi", storedProfileRole)
+import NetworkScreen from "../components/Network";
+import AdminScreen from "../components/Admin";
+import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
@@ -77,10 +76,13 @@ export default function Home() {
     const { user, isLoaded, isSignedIn } = useUser();
 
     const [profileRole, setProfileRole] = useAtom(profileRoleAtom)
+    const [profileState, _setProfileState] = useAtom(profileStateAtom)
 
     const { colorScheme } = useColorScheme();
 
     const { animatedValue: pressMenuAnim, handlePressIn: pressInMenu, handlePressOut: pressOutMenu, isPressed: isMenuPressed } = usePressIn()
+
+    const router = useRouter();
 
     return (
         <Drawer.Navigator
@@ -306,7 +308,43 @@ export default function Home() {
                                     <Text className="ml-5">Payment</Text>
                                 </View>
                             )
-                        }} label={'Service'} onPress={() => { navigation.navigate('Service') }} />
+                        }} label={'Payment'} onPress={() => { navigation.navigate('Payment') }} />
+
+                        <DrawerItem style={{
+                            width: '100%',
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                            borderRadius: 0
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={() => {
+                            return (
+                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
+                                    <MaterialIcons
+                                        name='admin-panel-settings'
+                                        size={30}
+                                        color={Colors[colorScheme ?? 'light'].text}
+                                    />
+                                    <Text className="ml-5">Admin Info</Text>
+                                </View>
+                            )
+                        }} label={'Admin'} onPress={() => { navigation.navigate('Admin') }} />
+
+                        <DrawerItem style={{
+                            width: '100%',
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                            borderRadius: 0
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={() => {
+                            return (
+                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
+                                    <MaterialIcons
+                                        name='network-cell'
+                                        size={30}
+                                        color={Colors[colorScheme ?? 'light'].text}
+                                    />
+                                    <Text className="ml-5">Network</Text>
+                                </View>
+                            )
+                        }} label={'Network'} onPress={() => { navigation.navigate('Network') }} />
 
                         <DrawerItem style={{
                             width: '100%',
@@ -334,7 +372,7 @@ export default function Home() {
                                         color={Colors[colorScheme ?? 'light'].text}
                                     />
                                 </PressBtn><PressBtn onPress={() => {
-                                    console.log("drawer", { profileRole, AsyncStorage })
+                                    console.log("profileRole", { profileRole, profileState })
                                 }}  >
                                     <AntDesign
                                         name='twitter'
@@ -344,7 +382,7 @@ export default function Home() {
                                 </PressBtn>
                             </View>
 
-                        )} label={'Social Networks'} onPress={() => { console.log("drawer", { profileRole, AsyncStorage }) }} />
+                        )} label={'Social Networks'} onPress={() => { }} />
 
                     </DrawerContentScrollView>
                 )
@@ -358,6 +396,8 @@ export default function Home() {
             <Drawer.Screen name="Stack" component={StackScreen} />
             <Drawer.Screen name="History" component={HistoryScreen} />
             <Drawer.Screen name="Config" component={ConfigScreen} />
+            <Drawer.Screen name="Network" component={NetworkScreen} />
+            <Drawer.Screen name="Admin" component={AdminScreen} />
             <Drawer.Screen name="Service" component={CustomServiceScreen} />
             <Drawer.Screen name="Payment" component={PaymentScreen} />
 

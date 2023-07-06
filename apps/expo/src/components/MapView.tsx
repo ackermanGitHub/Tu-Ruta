@@ -229,7 +229,7 @@ const MapViewComponent = () => {
                                     <View className='flex-row h-full justify-between items-center'>
                                         <MaterialCommunityIcons name={colorScheme === 'dark' ? "message-text" : "message-text-outline"} size={24} />
                                         <PressBtn onPress={() => {
-                                            console.log("assa")
+
                                         }}>
                                             <View className='h-10 w-32 mt-3 mr-5 justify-center items-center rounded-2xl bg-zinc-300 dark:bg-zinc-900'>
                                                 <Text className='font-bold text-base'>Taxi</Text>
@@ -275,7 +275,7 @@ const MapViewComponent = () => {
                                         <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@julydev</Text>
                                     </View>
                                     <PressBtn onPress={() => {
-                                        console.log("assa")
+
                                     }}>
                                         <View className='h-10 w-32 mt-3 mr-5 justify-center items-center rounded-2xl bg-zinc-300 dark:bg-zinc-900'>
                                             <Text className='font-bold text-base'>Editar Perfil</Text>

@@ -6,7 +6,6 @@ import { useUser } from '@clerk/clerk-expo';
 
 import { useAtom, atom } from 'jotai'
 import { atomWithStorage, createJSONStorage } from 'jotai/utils'
-import { profileRoleAtom } from '../app';
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import NetInfo from '@react-native-community/netinfo';
@@ -24,47 +23,69 @@ const headingAtom = atom<Location.LocationHeadingObject>({
     accuracy: 0,
 })
 
+const storedProfileRole = createJSONStorage<'taxi' | 'client'>(() => AsyncStorage)
+export const profileRoleAtom = atomWithStorage<'taxi' | 'client'>('userRole', "client", storedProfileRole)
+
+const storedProfileState = createJSONStorage<'active' | 'streaming' | 'inactive'>(() => AsyncStorage)
+export const profileStateAtom = atomWithStorage<'active' | 'streaming' | 'inactive'>('profileState', "inactive", storedProfileState)
+
+const storedStreamingTo = createJSONStorage<string | null>(() => AsyncStorage)
+export const streamingToAtom = atomWithStorage<string | null>('streamingTo', null, storedStreamingTo)
+
 const useMapConnection = () => {
     const [markers, setMarkers] = useAtom(markersAtom);
     const [historyLocation, setHistoryLocation] = useAtom(historyLocationAtom);
 
-    const [location, setLocation] = useAtom(locationAtom);
     const [heading, setHeading] = useAtom(headingAtom);
 
+    const [location, setLocation] = useAtom(locationAtom);
     const locationRef = useRef(location);
     locationRef.current = location;
 
-    const [profileRole, setProfileRole] = useAtom(profileRoleAtom)
+    const [profileRole, _setProfileRole] = useAtom(profileRoleAtom)
     const profileRoleRef = useRef(profileRole);
     profileRoleRef.current = profileRole;
 
-    // const [isReady, setIsReady] = useState(false);
-    // const [error, setError] = useState<string | null>(null);
+    const [profileState, _setProfileState] = useAtom(profileStateAtom)
+    const profileStateRef = useRef(profileState);
+    profileStateRef.current = profileState;
+
+    const [streamingTo, _setStreamingTo] = useAtom(streamingToAtom)
+    const streamingToRef = useRef(streamingTo);
+    streamingToRef.current = streamingTo;
 
     const ws = useRef<WebSocket | null>(null);
 
-    const { user, isLoaded, isSignedIn } = useUser()
+    const { isConnected, isInternetReachable } = NetInfo.useNetInfo();
+    const { user, isLoaded, isSignedIn } = useUser();
 
     const sendMessageToServer = (message: string) => {
         try {
-            console.log(ws)
+            if (!isConnected || !isInternetReachable) {
+                console.error("No internet connection");
+                return;
+            }
 
             if (ws.current?.readyState === WebSocket.CONNECTING) {
                 setTimeout(() => {
                     sendMessageToServer(message)
                 }, 3000);
+                return;
             }
 
             if (ws.current?.readyState === WebSocket.CLOSING) {
                 console.log("WebSocket is closing");
+                return;
             }
 
             if (ws.current?.readyState === WebSocket.CLOSED) {
                 console.log("WebSocket is closed");
+                return;
             }
 
             if (ws.current?.readyState === WebSocket.OPEN) {
                 ws.current?.send(message);
+                return;
             }
 
         } catch (error) {
@@ -84,6 +105,8 @@ const useMapConnection = () => {
 
         // event.data.startsWith("markers-") ? void setMarkers(JSON.parse(event.data.replace("markers-", ""))) : null;
 
+        console.log(event.data)
+
         // event.data.startsWith("taxisActives-") ? void setMarkers(JSON.parse(event.data.replace("markers-", ""))) : null;
 
     }, []);
@@ -91,6 +114,11 @@ const useMapConnection = () => {
     useEffect(() => {
 
         const asyncWebSocket = async () => {
+            if (!isConnected || !isInternetReachable) {
+                console.error("No internet connection");
+                return;
+            }
+
             const protocol = (await AsyncStorage.getItem('userRole'))?.includes("client") ? 'map-client' : 'map-worker';
 
             ws.current = new WebSocket("ws://192.168.1.102:3333", protocol);
@@ -150,39 +178,78 @@ const useMapConnection = () => {
 
         void trackPosition()
 
-        const unsubscribe = NetInfo.addEventListener(state => {
-            console.log('Connection type', state.type);
-            console.log('Is connected?', state.isConnected);
-        });
-
         // To unsubscribe to these update, just use:
 
+        let positionStreaming: NodeJS.Timer;
+        if (isSignedIn && isLoaded) {
 
-        const positionStreaming = setInterval(() => {
+            if (profileState === 'active' && profileRole === 'taxi') {
 
-            console.log(profileRoleRef)
+                positionStreaming = setInterval(() => {
 
-            if (isSignedIn && isLoaded) {
-                sendMessageToServer("taxiDriver-" + JSON.stringify({
-                    ...locationRef.current, coords: {
-                        heading: heading.trueHeading,
-                        ...locationRef.current?.coords
-                    }
-                }))
+                    sendMessageToServer(`taxiDriver-` + JSON.stringify({
+                        ...locationRef.current, coords: {
+                            heading: heading.trueHeading,
+                            ...locationRef.current?.coords
+                        },
+                        userId: user.id,
+                        profileRole: profileRoleRef.current,
+                        isConnected: isConnected,
+                    }))
+
+                }, 3000)
+
+            } else if (profileState === 'streaming') {
+
+                if (profileRole === 'client') {
+
+                    positionStreaming = setInterval(() => {
+
+                        sendMessageToServer(`clientTo-` + JSON.stringify({
+                            ...locationRef.current, coords: {
+                                heading: heading.trueHeading,
+                                ...locationRef.current?.coords
+                            },
+                            userId: user.id,
+                            profileRole: profileRoleRef.current,
+                            isConnected: isConnected,
+                            streamingTo: streamingToRef,
+                        }))
+
+                    }, 3000)
+
+                } else if (profileRole === 'taxi') {
+
+                    positionStreaming = setInterval(() => {
+
+                        sendMessageToServer(`taxiDriverTo-` + JSON.stringify({
+                            ...locationRef.current, coords: {
+                                heading: heading.trueHeading,
+                                ...locationRef.current?.coords
+                            },
+                            userId: user.id,
+                            profileRole: profileRoleRef.current,
+                            isConnected: isConnected,
+                        }))
+
+                    }, 3000)
+
+                }
+
             }
 
-        }, 3000)
+
+        }
 
         return () => {
-            clearInterval(positionStreaming)
+            positionStreaming && clearInterval(positionStreaming)
             if (ws.current?.readyState === WebSocket.OPEN) {
                 ws.current?.close();
                 ws.current?.removeEventListener("message", handleWebSocketMessage);
             }
             PositionSubscrition && PositionSubscrition.remove()
-            unsubscribe();
         };
-    }, []);
+    }, [isSignedIn, profileRole, isConnected, profileRole, profileState]);
 
     return {
         markers,
@@ -228,7 +295,11 @@ CREATE TABLE Profile (
     email VARCHAR(255),
     userName VARCHAR(255),
     alias VARCHAR(255),
+    profile_identifier VARCHAR(255) UNIQUE NOT NULL,
     userRole VARCHAR(255) DEFAULT 'client',
+    licenceNo VARCHAR(255),
+    taxi_category VARCHAR(255),
+    taxi_start FLOAT(2) CHECK (taxi_start >= 1 AND taxi_start <= 5),
     active BOOLEAN DEFAULT false,
     last_location_id INT NOT NULL,
     FOREIGN KEY (last_location_id) REFERENCES Location(id),

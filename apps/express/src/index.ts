@@ -77,4 +77,53 @@ App.get("/api/clients", async (req, res) => {
   });
 });
 
-/* App.post('/addNewProfile') */
+App.post('/addProfile', async (req, res) => {
+
+  /* 
+  CREATE TABLE Profile (
+    id INT PRIMARY KEY,
+    userId VARCHAR(255),
+    marker_id INT,
+    phone_number VARCHAR(255),
+    email VARCHAR(255),
+    userName VARCHAR(255),
+    alias VARCHAR(255),
+    profile_identifier VARCHAR(255) UNIQUE NOT NULL,
+    taxi_category VARCHAR(255),
+    userRole VARCHAR(255) DEFAULT 'client',
+    licenceNo VARCHAR(255),
+    taxi_start FLOAT(2) CHECK (taxi_start >= 1 AND taxi_start <= 5) DEFAULT 5,
+    active BOOLEAN DEFAULT false,
+    last_location_id INT NOT NULL,
+    FOREIGN KEY (last_location_id) REFERENCES Location(id),
+    FOREIGN KEY (marker_id) REFERENCES Marker(id)
+);
+  */
+  try {
+    const { userId, markerId, phoneNumber, email, userName, alias, profile_identifier, taxi_category, licenceNo, userRole, active, lastLocationId } = req.body;
+
+    // Insert the new profile into the database
+    const query = 'INSERT INTO Profile (userId, marker_id, phone_number, email, userName, alias, profile_identifier, taxi_category, userRole, active, last_location_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *';
+    const values = [userId, markerId, phoneNumber, email, userName, alias, profile_identifier, taxi_category, licenceNo, userRole, active, lastLocationId];
+    const result = await pool.query(query, values);
+
+    res.status(201).json(result.rows[0]); // Return the inserted profile
+  } catch (error) {
+    console.error('Error inserting profile:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+
+})
+
+App.get('/activesTaxis', async (req, res) => {
+  try {
+    const query = 'SELECT * FROM Profile WHERE userRole = $1 AND active = $2 ORDER BY starts';
+    const values = ['taxi', true];
+    const result = await pool.query(query, values);
+
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error fetching profiles:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
