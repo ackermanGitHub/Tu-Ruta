@@ -32,6 +32,8 @@ import PaymentScreen from '../components/Payment';
 import { useColorScheme } from 'nativewind';
 import SignUp from "../components/Sign-up";
 
+import NetInfo from '@react-native-community/netinfo';
+
 import { useAtom } from 'jotai'
 // import { useRef } from "react";
 import NetworkScreen from "../components/Network";
@@ -85,6 +87,8 @@ export default function Home() {
     // const isSmallScreen = width <= 350;
 
     const { user, isLoaded, isSignedIn } = useUser();
+
+    const { isConnected, isInternetReachable, type: connectionType } = NetInfo.useNetInfo()
 
     const [profileRole, setProfileRole] = useAtom(profileRoleAtom)
     const [profileState, _setProfileState] = useAtom(profileStateAtom)
@@ -203,6 +207,28 @@ export default function Home() {
                                             className={`w-8 h-8 rounded-full`}
                                         />
                                         <Text className="ml-5">{`${user.firstName} ${user.lastName}`}</Text>
+                                    </View>
+                                    <View className="absolute items-center justify-center top-0 right-1 flex-row gap-2">
+                                        <View style={{
+                                            backgroundColor: isConnected && isInternetReachable ? 'rgb(74 222 128)' : 'rgb(248 113 113)'
+                                        }} className="w-2 h-2 rounded-full"></View>
+                                        {
+                                            connectionType.includes('wifi')
+                                                ? (
+                                                    <MaterialIcons
+                                                        name='wifi'
+                                                        size={10}
+                                                        color={Colors[colorScheme ?? 'light'].text}
+                                                    />
+                                                )
+                                                : (
+                                                    <MaterialIcons
+                                                        name='network-cell'
+                                                        size={10}
+                                                        color={Colors[colorScheme ?? 'light'].text}
+                                                    />
+                                                )
+                                        }
                                     </View>
 
                                 </View>
@@ -363,7 +389,7 @@ export default function Home() {
                             bottom: 0,
                             borderRadius: 0
                         }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={() => (
-                            <View className={`w-full p-0 m-0 flex-row justify-around items-center bg-transparent`}>
+                            <View className="w-full flex-row justify-around items-center bg-transparent">
                                 <PressBtn onPress={() => {
                                     void setProfileRole('client')
                                 }}  >
@@ -390,7 +416,6 @@ export default function Home() {
                                     />
                                 </PressBtn>
                             </View>
-
                         )} label={'Social Networks'} onPress={() => { }} />
 
                     </DrawerContentScrollView>
