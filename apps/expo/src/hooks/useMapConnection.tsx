@@ -119,7 +119,8 @@ const useMapConnection = () => {
                 return;
             }
 
-            const protocol = (await AsyncStorage.getItem('userRole'))?.includes("client") ? 'map-client' : 'map-worker';
+            let protocol = (await AsyncStorage.getItem('userRole'))?.includes("client") ? 'map-client' : 'map-worker';
+            if (isSignedIn) protocol += "-" + user.id
 
             ws.current = new WebSocket("ws://192.168.1.102:3333", protocol);
 
@@ -249,7 +250,7 @@ const useMapConnection = () => {
             }
             PositionSubscrition && PositionSubscrition.remove()
         };
-    }, [isSignedIn, profileRole, isConnected, profileRole, profileState]);
+    }, [isSignedIn, isConnected, profileRole, profileState]);
 
     return {
         markers,

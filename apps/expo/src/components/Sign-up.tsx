@@ -7,6 +7,8 @@ import { type DrawerNavigationProp } from '@react-navigation/drawer';
 import { PressBtn } from '../styles/PressBtn';
 import SignWithOAuth from './SignWithOAuth';
 import { Image } from 'expo-image';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import TuRutaImg from '../../assets/Logo.png'
 
 function determineCredentialType(input: string): string {
@@ -22,7 +24,7 @@ function determineCredentialType(input: string): string {
     }
 }
 
-export default function SignUp({ navigation }: { navigation?: DrawerNavigationProp<any> }) {
+export default function SignUp({ navigation }: { navigation?: DrawerNavigationProp<Record<string, undefined>> }) {
 
     const { isLoaded, signUp, setActive } = useSignUp();
     const colorScheme = useColorScheme();
@@ -56,7 +58,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
 
             setPendingVerification(true);
 
-        } catch (err: any) {
+        } catch (err) {
             console.error(JSON.stringify(err, null, 2));
         }
     }
@@ -98,7 +100,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
 
             navigation?.navigate('Map')
 
-        } catch (err: any) {
+        } catch (err) {
             console.error(JSON.stringify(err, null, 2));
         }
     };
@@ -110,6 +112,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
             }} />
             <View className='w-3/4 items-center justify-center'>
                 <Image
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     source={TuRutaImg}
                     alt='Tu-Ruta Logo'
                     className={`h-16 w-14`}

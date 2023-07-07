@@ -67,12 +67,6 @@ App.get("/api/clients", async (req, res) => {
     clientsMap: {
       size: ClientsMap.size,
       keys: Array.from(ClientsMap.keys()),
-    },
-    ordersSendersSet: {
-      size: ClientsMap.get('ordersSender')?.size,
-    },
-    ordersRecieversSet: {
-      size: ClientsMap.get('ordersReciever')?.size,
     }
   });
 });

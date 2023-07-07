@@ -32,10 +32,8 @@ import PaymentScreen from '../components/Payment';
 import { useColorScheme } from 'nativewind';
 import SignUp from "../components/Sign-up";
 
-import { useRouter } from "expo-router";
-
 import { useAtom } from 'jotai'
-import { useRef } from "react";
+// import { useRef } from "react";
 import NetworkScreen from "../components/Network";
 import AdminScreen from "../components/Admin";
 import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
@@ -45,13 +43,26 @@ void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE
 const { width, height } = Dimensions.get("window");
 
 const CARD_HEIGHT = height / 4;
-const CARD_WIDTH = CARD_HEIGHT - 50;
+// const CARD_WIDTH = CARD_HEIGHT - 50;
 
 const Drawer = createDrawerNavigator();
 
+export type DrawerParamList = {
+    "Sign-In": unknown;
+    "Sign-Up": unknown;
+    "Map": unknown;
+    "Stack": unknown;
+    "History": unknown;
+    "Config": unknown;
+    "Network": unknown;
+    "Admin": unknown;
+    "Service": unknown;
+    "Payment": unknown;
+};
+
 export default function Home() {
 
-    const dropdownVisible = useRef(new Animated.Value(1)).current;
+    /* const dropdownVisible = useRef(new Animated.Value(1)).current;
 
     const handleOpenDropdown = () => {
         Animated.timing(dropdownVisible, {
@@ -67,11 +78,11 @@ export default function Home() {
             duration: 150,
             useNativeDriver: true,
         }).start();
-    };
+    }; */
 
     const isLargeScreen = width >= 768;
 
-    const isSmallScreen = width <= 350;
+    // const isSmallScreen = width <= 350;
 
     const { user, isLoaded, isSignedIn } = useUser();
 
@@ -81,8 +92,6 @@ export default function Home() {
     const { colorScheme } = useColorScheme();
 
     const { animatedValue: pressMenuAnim, handlePressIn: pressInMenu, handlePressOut: pressOutMenu, isPressed: isMenuPressed } = usePressIn()
-
-    const router = useRouter();
 
     return (
         <Drawer.Navigator

@@ -1,6 +1,4 @@
 
-const WonderWoman = { uri: "http://i.imgur.com/sNam9iJ.jpg" };
-
 export interface MarkerData {
     coordinate: {
         latitude: number;
@@ -11,9 +9,9 @@ export interface MarkerData {
         speed?: number | null;
         altitudeAccuracy?: number | null;
     };
-    title: string;
-    description: string;
-    image: any;
+    title?: string;
+    description?: string;
+    imageURL?: string;
     userId?: string;
 }
 
@@ -25,7 +23,7 @@ export const initialMarkers: MarkerData[] = [
         },
         title: "Best Place",
         description: "This is the best place in Portland",
-        image: WonderWoman,
+        imageURL: '',
     },
     {
         coordinate: {
@@ -34,7 +32,7 @@ export const initialMarkers: MarkerData[] = [
         },
         title: "Second Best Place",
         description: "This is the second best place in Portland",
-        image: WonderWoman,
+        imageURL: '',
     },
     {
         coordinate: {
@@ -43,7 +41,7 @@ export const initialMarkers: MarkerData[] = [
         },
         title: "Third Best Place",
         description: "This is the third best place in Portland",
-        image: WonderWoman,
+        imageURL: '',
     },
     {
         coordinate: {
@@ -52,6 +50,6 @@ export const initialMarkers: MarkerData[] = [
         },
         title: "Fourth Best Place",
         description: "This is the fourth best place in Portland",
-        image: WonderWoman,
+        imageURL: '',
     },
 ];

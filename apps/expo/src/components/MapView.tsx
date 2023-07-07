@@ -4,6 +4,7 @@ import {
     Pressable,
     Animated,
     StatusBar,
+    Switch
 } from "react-native";
 
 import {
@@ -32,6 +33,8 @@ import ProfileDropdown from './ProfileDropdown';
 import { PressBtn } from '../styles/PressBtn';
 import UserMarker from '../markers/UserMarker';
 import CarMarker from '../markers/CarMarker';
+import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
+import { useAtom } from 'jotai';
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
@@ -40,7 +43,8 @@ void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE
 const snapPoints = ["25%", "48%", "75%"];
 
 const MapViewComponent = () => {
-
+    const [profileRole, setProfileRole] = useAtom(profileRoleAtom)
+    const [profileState, setProfileState] = useAtom(profileStateAtom)
 
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const [userSelected, setUserSelected] = useState(false);
@@ -133,7 +137,7 @@ const MapViewComponent = () => {
 
                     {markers.map((marker: MarkerData, index: number) => {
                         return (
-                            <CarMarker key={index} onPress={() => handleMarkerPress(index)} coordinate={marker.coordinate} description='' title='' />
+                            <CarMarker key={index} onPress={() => handleMarkerPress(index)} coordinate={marker.coordinate} description='' title='' imageURL='' />
                         );
                     })}
 
@@ -287,6 +291,18 @@ const MapViewComponent = () => {
                                         <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ipsum recusandae similique, at porro quisquam enim officiis nam iure, tempora perspiciatis laborum ducimus fugiat voluptatibus eum saepe cumqu</Text>
                                     </View>
                                 </View>
+
+                                <View className='flex-row w-full items-center justify-center gap-3'>
+                                    <Text>Is Active?</Text>
+                                    <Switch value={profileState === 'active'} onValueChange={() => { void setProfileState(profileState === 'active' ? 'inactive' : 'active') }} />
+                                </View>
+
+                                <View className='flex-row w-full items-center justify-center gap-3'>
+                                    <Text>Role</Text>
+                                    <Text>{profileRole}</Text>
+                                </View>
+
+
                             </View>
                         )}
                     </View>

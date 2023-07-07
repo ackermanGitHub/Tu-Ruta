@@ -54,6 +54,7 @@ function handleNewConnection(ws: WebSocket, request: IncomingMessage) {
 
     ws.on('message', (message) => {
 
+        console.log(message.toString())
         if (protocol.includes('map-client-')) {
             // const location: { coords: { accuracy: number, altitude: number, altitudeAccuracy: number, heading: number, latitude: number, longitude: number, speed: number }, mocked: boolean, timestamp: number, userId: string } = JSON.parse(message.toString())
         } else if (protocol.includes('map-worker-')) {
