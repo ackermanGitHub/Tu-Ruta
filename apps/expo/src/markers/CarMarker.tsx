@@ -11,6 +11,7 @@ import { useColorScheme } from 'nativewind'
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import BlackCarSVG from '../../assets/svgs/BlackCar.svg'
+import BlackCarTSX from '../components/BlackCarSVG'
 
 type TaxiCategories = 'basic' | 'confort' | 'xl'
 
@@ -35,7 +36,7 @@ const CarMarker = ({ coordinate, description, title, userId, category, image, he
         rotate();
     }, [heading])
 
-    useEffect(() => {
+    /* useEffect(() => {
 
         let isOscillating = true;
 
@@ -65,7 +66,7 @@ const CarMarker = ({ coordinate, description, title, userId, category, image, he
         return () => {
             isOscillating = false;
         }
-    }, [])
+    }, []) */
 
     return (
         <>
@@ -97,8 +98,8 @@ const CarMarker = ({ coordinate, description, title, userId, category, image, he
                     width: 48,
                     height: 48,
                 }}>
-                    <Image alt='Black Car SVG' className='h-12 w-8' source={BlackCarSVG} />
-                    <Animated.View style={{
+                    <BlackCarTSX />
+                    {/* <Animated.View style={{
                         backgroundColor: colorScheme === 'light' ? 'transparent' : 'rgba(26,18,11,0.5)',
                         position: 'absolute',
                         width: 48,
@@ -120,7 +121,7 @@ const CarMarker = ({ coordinate, description, title, userId, category, image, he
                                 scale: animatedSize
                             }
                         ]
-                    }} />
+                    }} /> */}
                 </View>
             </MarkerAnimated>
         </>
