@@ -39,28 +39,31 @@ import { useAtom } from 'jotai'
 import NetworkScreen from "../components/Network";
 import AdminScreen from "../components/Admin";
 import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
+import DeviceScreen from "../components/Device";
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
 const { width, height } = Dimensions.get("window");
 
 const CARD_HEIGHT = height / 4;
+const isAdmin = true;
 // const CARD_WIDTH = CARD_HEIGHT - 50;
-
-const Drawer = createDrawerNavigator();
-
 export type DrawerParamList = {
-    "Sign-In": unknown;
-    "Sign-Up": unknown;
-    "Map": unknown;
-    "Stack": unknown;
-    "History": unknown;
-    "Config": unknown;
-    "Network": unknown;
-    "Admin": unknown;
-    "Service": unknown;
-    "Payment": unknown;
+    "Sign-In": undefined;
+    "Sign-Up": undefined;
+    "Map": undefined;
+    "Stack": undefined;
+    "History": undefined;
+    "Config": undefined;
+    "Network": undefined;
+    "Admin": undefined;
+    "Device": undefined;
+    "Service": undefined;
+    "Payment": undefined;
 };
+
+const Drawer = createDrawerNavigator<DrawerParamList>();
+
 
 export default function Home() {
 
@@ -372,6 +375,24 @@ export default function Home() {
                             return (
                                 <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
                                     <MaterialIcons
+                                        name='perm-device-information'
+                                        size={30}
+                                        color={Colors[colorScheme ?? 'light'].text}
+                                    />
+                                    <Text className="ml-5">Device Info</Text>
+                                </View>
+                            )
+                        }} label={'Device'} onPress={() => { navigation.navigate('Device') }} />
+
+                        <DrawerItem style={{
+                            width: '100%',
+                            marginHorizontal: 0,
+                            marginVertical: 0,
+                            borderRadius: 0
+                        }} pressColor={colorScheme === 'dark' ? 'white' : 'black'} icon={() => {
+                            return (
+                                <View className={`w-full my-2 flex-row justify-start items-center bg-transparent px-5`}>
+                                    <MaterialIcons
                                         name='network-cell'
                                         size={30}
                                         color={Colors[colorScheme ?? 'light'].text}
@@ -432,6 +453,7 @@ export default function Home() {
             <Drawer.Screen name="Config" component={ConfigScreen} />
             <Drawer.Screen name="Network" component={NetworkScreen} />
             <Drawer.Screen name="Admin" component={AdminScreen} />
+            <Drawer.Screen name="Device" component={DeviceScreen} />
             <Drawer.Screen name="Service" component={CustomServiceScreen} />
             <Drawer.Screen name="Payment" component={PaymentScreen} />
 
