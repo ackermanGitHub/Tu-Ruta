@@ -122,7 +122,7 @@ const useMapConnection = () => {
             let protocol = (await AsyncStorage.getItem('userRole'))?.includes("client") ? 'map-client' : 'map-worker';
             if (isSignedIn) protocol += "-" + user.id
 
-            ws.current = new WebSocket("ws://192.168.1.102:3333", protocol);
+            ws.current = new WebSocket("ws://192.168.1.103:3333", protocol);
 
             ws.current.addEventListener("open", (event) => {
                 console.log('%c Connection opened', 'background: orange; color: black;', event);
@@ -144,7 +144,7 @@ const useMapConnection = () => {
         let PositionSubscrition: Location.LocationSubscription | undefined = undefined;
 
         const trackPosition = async () => {
-            const { status } = await Location.requestBackgroundPermissionsAsync()
+            const { status } = await Location.getForegroundPermissionsAsync()
             await Location.enableNetworkProviderAsync()
 
             if (status !== 'granted') {
