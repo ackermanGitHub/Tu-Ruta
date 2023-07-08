@@ -39,6 +39,7 @@ import { useAtom } from 'jotai';
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
 // "emailAddress": "julio.sergio2709@gmail.com", "id": "idn_2RJhwToHB8RbifJBZlXZ5jWn8D4"
+// Access Token: pk.434c2613d0817ab0dd86813cf59ea6de
 
 const snapPoints = ["25%", "48%", "75%"];
 
@@ -166,12 +167,6 @@ const MapViewComponent = () => {
                             pressOutNav();
                         }}
                         onPress={() => {
-
-                            void NetInfo.fetch().then(state => {
-                                console.log('Connection type', state.type);
-                                console.log('Is connected?', state.isConnected);
-                            });
-
                             if (location) {
                                 animateToRegion({
                                     latitude: location.coords.latitude,
@@ -202,6 +197,7 @@ const MapViewComponent = () => {
                     }}
                 >
                     <View className={'w-full h-full rounded-t-3xl overflow-hidden'}>
+
                         {selectedMarkerIndex !== null && !userSelected && (
                             <View className='w-full h-full'>
 
@@ -212,8 +208,6 @@ const MapViewComponent = () => {
                                     className={'w-full h-48'}
                                     resizeMode="cover"
                                 />
-
-                                <ProfileDropdown />
 
                                 <View className={'absolute left-5 top-40 border-2 border-solid border-white dark:border-black w-16 h-16 rounded-full overflow-hidden'}>
                                     <Animated.Image
@@ -231,14 +225,11 @@ const MapViewComponent = () => {
                                         <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@julydev</Text>
                                     </View>
                                     <View className='flex-row h-full justify-between items-center'>
-                                        <MaterialCommunityIcons name={colorScheme === 'dark' ? "message-text" : "message-text-outline"} size={24} />
-                                        <PressBtn onPress={() => {
-
-                                        }}>
-                                            <View className='h-10 w-32 mt-3 mr-5 justify-center items-center rounded-2xl bg-zinc-300 dark:bg-zinc-900'>
-                                                <Text className='font-bold text-base'>Taxi</Text>
-                                            </View>
-                                        </PressBtn>
+                                        <MaterialCommunityIcons
+                                            name={colorScheme === 'dark' ? "message-text" : "message-text-outline"}
+                                            size={24}
+                                            color={Colors[colorScheme ?? 'light'].text}
+                                        />
                                     </View>
                                 </View>
 
@@ -250,6 +241,7 @@ const MapViewComponent = () => {
 
                             </View>
                         )}
+
                         {userSelected && isSignedIn && isLoaded && (
                             <View className='w-full h-full'>
 
@@ -281,7 +273,7 @@ const MapViewComponent = () => {
                                     <PressBtn onPress={() => {
 
                                     }}>
-                                        <View className='h-10 w-32 mt-3 mr-5 justify-center items-center rounded-2xl bg-zinc-300 dark:bg-zinc-900'>
+                                        <View className='h-10 w-32 mt-3 mr-5 justify-center items-center rounded-2xl border-zinc-400 dark:border-zinc-800'>
                                             <Text className='font-bold text-base'>Editar Perfil</Text>
                                         </View>
                                     </PressBtn>

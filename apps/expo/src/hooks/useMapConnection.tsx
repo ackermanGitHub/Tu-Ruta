@@ -122,7 +122,7 @@ const useMapConnection = () => {
             let protocol = (await AsyncStorage.getItem('userRole'))?.includes("client") ? 'map-client' : 'map-worker';
             if (isSignedIn) protocol += "-" + user.id
 
-            ws.current = new WebSocket("ws://192.168.1.103:3333", protocol);
+            ws.current = new WebSocket("ws://192.168.87.191:3333", protocol);
 
             ws.current.addEventListener("open", (event) => {
                 console.log('%c Connection opened', 'background: orange; color: black;', event);

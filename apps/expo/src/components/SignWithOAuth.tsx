@@ -7,12 +7,14 @@ import { Text, View } from "../styles/Themed";
 import { PressBtn } from "../styles/PressBtn";
 import { AntDesign } from '@expo/vector-icons';
 import { useColorScheme } from "nativewind";
+import { Dimensions } from "react-native";
 
-const SignWithOAuth = ({ action }: { action: 'sign-in' | 'sign-up' }) => {
+const SignWithOAuth = ({ action, phoneNumber }: { action: 'sign-in' | 'sign-up', phoneNumber?: string }) => {
 
   const { startOAuthFlow: googleOAuthFlow } = useOAuth({ strategy: "oauth_google" });
   const { startOAuthFlow: appleOAuthFlow } = useOAuth({ strategy: "oauth_apple" });
   const { colorScheme } = useColorScheme()
+  const { width } = Dimensions.get('window')
 
   React.useEffect(() => {
     void WebBrowser.warmUpAsync();
@@ -27,7 +29,13 @@ const SignWithOAuth = ({ action }: { action: 'sign-in' | 'sign-up' }) => {
         await googleOAuthFlow();
 
       if (createdSessionId) {
-        setActive && setActive({ session: createdSessionId });
+
+        if (action === 'sign-in') {
+          signIn && signIn({ session: createdSessionId });
+        } else if (action === 'sign-up') {
+          signUp && signUp({ session: createdSessionId, phoneNumber });
+        }
+
       } else {
         // Modify this code to use signIn or signUp to set this missing requirements you set in your dashboard.
         throw new Error("There are unmet requirements, modifiy this else to handle them")
@@ -47,7 +55,13 @@ const SignWithOAuth = ({ action }: { action: 'sign-in' | 'sign-up' }) => {
         await appleOAuthFlow();
 
       if (createdSessionId) {
-        setActive && setActive({ session: createdSessionId });
+
+        if (action === 'sign-in') {
+          signIn && signIn({ session: createdSessionId });
+        } else if (action === 'sign-up') {
+          signUp && signUp({ session: createdSessionId, phoneNumber });
+        }
+
       } else {
         // Modify this code to use signIn or signUp to set this missing requirements you set in your dashboard.
         throw new Error("There are unmet requirements, modifiy this else to handle them")
@@ -59,9 +73,10 @@ const SignWithOAuth = ({ action }: { action: 'sign-in' | 'sign-up' }) => {
 
   return (
     <>
-      <View className="justify-center items-center mt-6 w-4/5">
-        <PressBtn onPress={googleSignHandler} className={'w-[240px] flex-row max-w-[280px] border border-solid border-gray-500 my-2 dark:border-none dark:bg-white rounded-3xl h-12 justify-center items-center'}>
-          <Svg width="24px" height="24px" viewBox="-0.5 0 48 48">
+      <View className="justify-center items-center mt-2 w-1/2">
+
+        <PressBtn onPress={googleSignHandler} className={'w-[240px] max-[367px]:w-[190px] max-w-[280px] h-12 max-[367px]:h-10 flex-row border border-solid border-gray-500 mb-2 dark:border-none dark:bg-white rounded-3xl justify-center items-center'}>
+          <Svg className="h-6 w-6 max-[367px]:h-5 max-[367px]:w-5" viewBox="-0.5 0 48 48">
             <Defs>
             </Defs>
             <G id="Icons" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
@@ -75,14 +90,17 @@ const SignWithOAuth = ({ action }: { action: 'sign-in' | 'sign-up' }) => {
               </G>
             </G>
           </Svg>
-          <Text className={'dark:text-gray-800  ml-3 font-medium text-base'}>Usar Google</Text>
+          <Text className={'dark:text-gray-800 ml-3 font-medium text-base max-[367px]:text-sm'}>Usar Google</Text>
         </PressBtn>
-        <PressBtn onPress={appleSignHandler} className={'w-[240px] flex-row max-w-[280px] bg-[#111111] my-2 dark:bg-white rounded-3xl h-12 justify-center items-center'}>
-          <AntDesign name="apple1" size={24} color={colorScheme === "dark" ? "black" : "white"} />
-          <Text lightColor="white" darkColor="black" className={'ml-3 font-medium text-base'}>Usar Apple</Text>
+
+        <PressBtn onPress={appleSignHandler} className={'w-[240px] max-[367px]:w-[190px] max-w-[280px] h-12 max-[367px]:h-10 flex-row bg-[#111111] dark:bg-white rounded-3xl justify-center items-center'}>
+          <AntDesign name="apple1" size={width <= 367 ? 20 : 24} color={colorScheme === "dark" ? "black" : "white"} />
+          <Text lightColor="white" darkColor="black" className={'ml-3 font-medium text-base max-[367px]:text-sm'}>Usar Apple</Text>
         </PressBtn>
+
       </View>
-      <View className="h-11 w-4/5 flex-row items-center justify-around">
+
+      <View className="h-11 max-[367px]:h-8 w-4/5 flex-row items-center justify-around">
         <View className="bg-gray-300 dark:bg-gray-600 h-[1px] w-1/3"></View>
         <Text className="text-sm font-light text-gray-400 dark:text-gray-400">O</Text>
         <View className="bg-gray-300 dark:bg-gray-600 h-[1px] w-1/3"></View>

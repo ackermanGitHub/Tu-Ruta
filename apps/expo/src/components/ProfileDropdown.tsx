@@ -8,14 +8,13 @@ import { Text } from '../styles/Themed';
 import { Feather } from '@expo/vector-icons';
 import Colors from '../styles/Colors';
 import { useColorScheme } from 'nativewind';
-import { useUser, useSignIn, useSession } from '@clerk/clerk-expo';
+import { useAuth } from '@clerk/clerk-expo';
 
 const ProfileDropdown = () => {
     const dropdownVisible = useRef(new Animated.Value(0)).current;
     const [isOpen, setIsOpen] = React.useState(false);
     const { colorScheme } = useColorScheme()
-    const { user, isLoaded, isSignedIn } = useUser();
-    const { session } = useSession();
+    const { isLoaded, signOut } = useAuth();
 
     const handleOpenDropdown = () => {
         setIsOpen(() => true)
@@ -68,14 +67,17 @@ const ProfileDropdown = () => {
                             },
                         ]}
                     >
-                        <Pressable onPress={() => { }}>
+                        <Pressable onPress={() => { console.log("Cambiar Imagen") }}>
                             <Text className='text-sm '>Cambiar Imagen</Text>
                         </Pressable>
-                        <Pressable onPress={() => { }}>
+                        <Pressable onPress={() => { console.log("Cambiar Nombre") }}>
                             <Text className='text-sm '>Cambiar Nombre</Text>
                         </Pressable>
                         <Pressable onPress={() => {
-                            void session?.remove()
+                            console.log('closing session')
+                            if (isLoaded) {
+                                void signOut()
+                            }
                         }}>
                             <Text className='text-sm '>Cerrar Sesión</Text>
                         </Pressable>

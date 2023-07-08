@@ -6,6 +6,8 @@ import { Stack } from "expo-router";
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from 'expo-font';
+// import * as NavigationBar from 'expo-navigation-bar';
+// import { useColorScheme } from "nativewind";
 
 // Keep the splash screen visible while we fetch resources
 void SplashScreen.preventAutoHideAsync();
@@ -15,14 +17,16 @@ const RootLayout = () => {
   const [fontsLoaded] = useFonts({
     'Inter-Regular': require('../../assets/Inter-Regular.otf'),
   });
+  // const { colorScheme } = useColorScheme()
 
+  // void NavigationBar.setBackgroundColorAsync(colorScheme === 'dark' ? 'black' : 'white')
 
   useEffect(() => {
     async function prepare() {
       try {
         // make any API calls you need to do here
 
-        // await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
       } catch (e) {
         console.warn(e);
       } finally {
@@ -51,18 +55,19 @@ const RootLayout = () => {
 
   return (
     <ClerkProvider
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_Z2VuZXJvdXMtbG9ic3Rlci0yMS5jbGVyay5hY2NvdW50cy5kZXYk"}
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_Z3JhdGVmdWwtc2FpbGZpc2gtMTQuY2xlcmsuYWNjb3VudHMuZGV2JA"}
       tokenCache={tokenCache}
     >
 
-      <SafeAreaProvider>
+      <SafeAreaProvider onLayout={void onLayoutRootView}>
 
+        <StatusBar />
         <Stack
           screenOptions={{
             headerShown: false
           }}
         />
-        <StatusBar />
+
 
       </SafeAreaProvider>
 
