@@ -158,15 +158,21 @@ const useMapConnection = () => {
                     timeInterval: 3000,
                 },
                 (newLocation) => {
-                    void setHistoryLocation(async (oldHistoryLocation) => [...((await oldHistoryLocation) || []), newLocation])
-                    getHeading()
-                        .then((heading) => {
-                            setHeading(heading);
-                            setLocation({ ...newLocation, coords: { ...newLocation.coords, heading: heading.trueHeading } })
-                        })
-                        .catch((error) => {
-                            console.log(error)
-                        })
+                    try {
+                        void setHistoryLocation(async (oldHistoryLocation) => [...((await oldHistoryLocation) || []), newLocation])
+
+                        getHeading()
+                            .then((heading) => {
+                                setHeading(heading);
+                                setLocation({ ...newLocation, coords: { ...newLocation.coords, heading: heading.trueHeading } })
+                            })
+                            .catch((error) => {
+                                console.log(error)
+                            })
+
+                    } catch (error) {
+                        console.error(error)
+                    }
                 },
 
             )

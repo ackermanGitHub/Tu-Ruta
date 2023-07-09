@@ -267,8 +267,8 @@ const MapViewComponent = () => {
 
                                 <View className={'w-full h-20 justify-between flex-row bg-transparent'}>
                                     <View className='bg-transparent h-full justify-end ml-5'>
-                                        <Text className='font-bold text-lg'>Julio López</Text>
-                                        <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@julydev</Text>
+                                        <Text className='font-bold text-lg'>{`${user.firstName} ${user.lastName}`}</Text>
+                                        <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@{`${user.username}`}</Text>
                                     </View>
                                     <PressBtn onPress={() => {
 

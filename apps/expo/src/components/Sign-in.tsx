@@ -80,7 +80,7 @@ export default function SignIn({ navigation }: { navigation?: DrawerNavigationPr
                 </View>
             }
 
-            <SignWithOAuth action={'sign-up'} />
+            <SignWithOAuth action={'sign-in'} />
 
             <View className={'w-4/5 max-[367px]:w-2/3 max-w-[320px] mb-4 max-[367px]:mb-2'}>
                 <TextInput
@@ -111,10 +111,10 @@ export default function SignIn({ navigation }: { navigation?: DrawerNavigationPr
                     color={colorScheme === 'light' ? 'white' : 'black'}
                 />}
             </PressBtn>
-            <Pressable className={'flex-row items-center justify-center'} onPress={() => { navigation && navigation.navigate('Sign-Up') }}>
+            <PressBtn className={'flex-row items-center justify-center my-2'} onPress={() => { navigation && navigation.navigate('Sign-Up') }}>
                 <Text className={'text-sm max-[367px]:text-xs font-light dark:text-gray-400'}>No Tienes Cuenta?</Text>
                 <Text className={'text-[#2e78b7] font-normal ml-1 text-sm max-[367px]:text-xs'}>Crear Cuenta</Text>
-            </Pressable>
+            </PressBtn>
         </View>
     );
 }

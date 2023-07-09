@@ -223,7 +223,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
 
             {isPhoneVerified && (
                 <>
-                    <SignWithOAuth action={'sign-up'} />
+                    <SignWithOAuth action={'sign-up'} phoneNumber={phoneNumber} />
                     <View className={'w-4/5 max-[367px]:w-2/3 max-w-[320px] mb-4 max-[367px]:mb-2 justify-center items-center'}>
                         <TextInput
                             className={'h-12 max-[367px]:h-10 w-[80%] px-4 border rounded border-gray-300 dark:bg-transparent dark:border-gray-600 text-gray-500 dark:text-slate-500'}
@@ -256,10 +256,10 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                 </>
             )}
 
-            <Pressable className={'flex-row items-center justify-center mt-2'} onPress={() => { navigation && navigation?.jumpTo('Sign-In') }}>
+            <PressBtn className={'flex-row items-center justify-center mt-2'} onPress={() => { navigation && navigation?.jumpTo('Sign-In') }}>
                 <Text className={'text-sm max-[367px]:text-xs font-light dark:text-gray-400'}>Ya Tienes Cuenta?</Text>
                 <Text className={'text-[#2e78b7] font-normal ml-1 text-sm max-[367px]:text-xs'}>Inicia Sesión</Text>
-            </Pressable>
+            </PressBtn>
         </View>
     );
 }

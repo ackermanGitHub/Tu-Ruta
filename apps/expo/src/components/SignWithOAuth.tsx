@@ -2,6 +2,7 @@
 import { useOAuth } from "@clerk/clerk-expo";
 import React from "react";
 import * as WebBrowser from "expo-web-browser";
+import * as AuthSession from 'expo-auth-session'
 import { Svg, Defs, G, Path } from "react-native-svg";
 import { Text, View } from "../styles/Themed";
 import { PressBtn } from "../styles/PressBtn";
@@ -11,7 +12,11 @@ import { Dimensions } from "react-native";
 
 const SignWithOAuth = ({ action, phoneNumber }: { action: 'sign-in' | 'sign-up', phoneNumber?: string }) => {
 
-  const { startOAuthFlow: googleOAuthFlow } = useOAuth({ strategy: "oauth_google" });
+  const redirectUrl = AuthSession.makeRedirectUri({
+    path: '/',
+  })
+
+  const { startOAuthFlow: googleOAuthFlow } = useOAuth({ strategy: "oauth_google", redirectUrl: redirectUrl });
   const { startOAuthFlow: appleOAuthFlow } = useOAuth({ strategy: "oauth_apple" });
   const { colorScheme } = useColorScheme()
   const { width } = Dimensions.get('window')
@@ -29,25 +34,16 @@ const SignWithOAuth = ({ action, phoneNumber }: { action: 'sign-in' | 'sign-up',
         await googleOAuthFlow();
 
       if (createdSessionId) {
-
-        if (action === 'sign-in') {
-          signIn && signIn({ session: createdSessionId });
-        } else if (action === 'sign-up') {
-          signUp && signUp({ session: createdSessionId, phoneNumber });
-        }
-
+        void setActive?.({ session: createdSessionId });
       } else {
         // Modify this code to use signIn or signUp to set this missing requirements you set in your dashboard.
         throw new Error("There are unmet requirements, modifiy this else to handle them")
       }
     } catch (err) {
+      console.log(JSON.stringify(err, null, 2));
       console.error("OAuth error", err);
     }
   }, []);
-
-  /* Client ID: 486971965065-e0gbmsua45qg1gko57qktvusqrah30gv.apps.googleusercontent.com */
-  /* Client secret: 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 */
-  /* redirect_URI: https://generous-lobster-21.clerk.accounts.dev/v1/oauth_callback */
 
   const appleSignHandler = React.useCallback(async () => {
     try {
@@ -55,18 +51,13 @@ const SignWithOAuth = ({ action, phoneNumber }: { action: 'sign-in' | 'sign-up',
         await appleOAuthFlow();
 
       if (createdSessionId) {
-
-        if (action === 'sign-in') {
-          signIn && signIn({ session: createdSessionId });
-        } else if (action === 'sign-up') {
-          signUp && signUp({ session: createdSessionId, phoneNumber });
-        }
-
+        void setActive?.({ session: createdSessionId });
       } else {
         // Modify this code to use signIn or signUp to set this missing requirements you set in your dashboard.
         throw new Error("There are unmet requirements, modifiy this else to handle them")
       }
     } catch (err) {
+      console.log(JSON.stringify(err, null, 2));
       console.error("OAuth error", err);
     }
   }, []);
