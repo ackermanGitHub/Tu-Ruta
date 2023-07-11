@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { useOAuth } from "@clerk/clerk-expo";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as WebBrowser from "expo-web-browser";
 import * as AuthSession from 'expo-auth-session'
 import { Svg, Defs, G, Path } from "react-native-svg";
@@ -56,10 +56,11 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, isReduced = false }: {
   }, [isReduced]);
 
   const googleSignHandler = React.useCallback(async () => {
-    console.log("googleSignHandler")
     try {
       const { createdSessionId, signIn, signUp, setActive } =
         await googleOAuthFlow();
+
+      // console.log(JSON.stringify({ createdSessionId, signIn, signUp, setActive }, null, 2));
 
       if (createdSessionId) {
         void setActive?.({ session: createdSessionId });
