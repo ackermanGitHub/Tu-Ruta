@@ -13,15 +13,15 @@ import {
 } from "@gorhom/bottom-sheet";
 
 import { NightMap } from '../styles/NightMap';
-import MapView, { Circle, Marker, type MapMarker, type Region, MarkerAnimated } from 'react-native-maps';
+import MapView, { /* Circle, Marker, */ type MapMarker, type Region/* , MarkerAnimated */ } from 'react-native-maps';
 
 import { type MarkerData } from '../constants/Markers';
 import useMapConnection from '../hooks/useMapConnection';
 
 import { View, Text } from '../styles/Themed';
-import { FontAwesome, MaterialIcons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { /* FontAwesome,  */MaterialIcons/* , Feather */, MaterialCommunityIcons } from '@expo/vector-icons';
 import Colors from '../styles/Colors';
-import NetInfo from '@react-native-community/netinfo';
+// import NetInfo from '@react-native-community/netinfo';
 
 import { useUser } from '@clerk/clerk-expo';
 import useFadeIn from '../hooks/useFadeIn';
@@ -44,13 +44,13 @@ void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE
 const snapPoints = ["25%", "48%", "75%"];
 
 const MapViewComponent = () => {
-    const [profileRole, setProfileRole] = useAtom(profileRoleAtom)
+    const [profileRole, _setProfileRole] = useAtom(profileRoleAtom)
     const [profileState, setProfileState] = useAtom(profileStateAtom)
 
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const [userSelected, setUserSelected] = useState(false);
 
-    const userMarkerRef = useRef<MapMarker>(null);
+    const _userMarkerRef = useRef<MapMarker>(null);
     const mapViewRef = useRef<MapView>(null);
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
@@ -59,7 +59,7 @@ const MapViewComponent = () => {
     const { colorScheme } = useColorScheme();
     useKeepAwake();
 
-    const { animatedValue: fadeNavAnim, fadeIn: fadeInNav, fadeOut: fadeOutNav, isVisible: isNavVisible } = useFadeIn({ defaultValue: true })
+    const { animatedValue: fadeNavAnim, fadeIn: fadeInNav, fadeOut: fadeOutNav, isVisible: _isNavVisible } = useFadeIn({ defaultValue: true })
     const { animatedValue: pressNavAnim, handlePressIn: pressInNav, handlePressOut: pressOutNav/* , isPressed: isNavPressed */ } = usePressIn()
     const [_isModalVisible, setIsModalVisible] = useState(false);
 
@@ -77,7 +77,7 @@ const MapViewComponent = () => {
                 });
             }
         }
-    }, [selectedMarkerIndex]);
+    }, [markers, selectedMarkerIndex]);
 
     const animateToRegion = (region: Region) => {
         mapViewRef.current && mapViewRef.current.animateToRegion(region)
@@ -270,9 +270,7 @@ const MapViewComponent = () => {
                                         <Text className='font-bold text-lg'>{`${user.firstName} ${user.lastName}`}</Text>
                                         <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@{`${user.username}`}</Text>
                                     </View>
-                                    <PressBtn onPress={() => {
-
-                                    }}>
+                                    <PressBtn onPress={() => { return }}>
                                         <View className='h-10 w-32 mt-3 mr-5 justify-center items-center rounded-2xl border-zinc-400 dark:border-zinc-800'>
                                             <Text className='font-bold text-base'>Editar Perfil</Text>
                                         </View>
