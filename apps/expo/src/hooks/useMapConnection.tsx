@@ -32,6 +32,8 @@ export const profileStateAtom = atomWithStorage<'active' | 'streaming' | 'inacti
 const storedStreamingTo = createJSONStorage<string | null>(() => AsyncStorage)
 export const streamingToAtom = atomWithStorage<string | null>('streamingTo', null, storedStreamingTo)
 
+const IS_WEB_SOCKET_CONNECTION = false
+
 const useMapConnection = () => {
     const [markers, setMarkers] = useAtom(markersAtom);
     const [historyLocation, setHistoryLocation] = useAtom(historyLocationAtom);
@@ -122,7 +124,7 @@ const useMapConnection = () => {
             let protocol = (await AsyncStorage.getItem('userRole'))?.includes("client") ? 'map-client' : 'map-worker';
             if (isSignedIn) protocol += "-" + user.id
 
-            ws.current = new WebSocket("ws://192.168.87.191:3333", protocol);
+            ws.current = new WebSocket("ws://192.168.135.191:3333", protocol);
 
             ws.current.addEventListener("open", (event) => {
                 console.log('%c Connection opened', 'background: orange; color: black;', event);
@@ -139,7 +141,9 @@ const useMapConnection = () => {
             });
 
         }
-        void asyncWebSocket()
+
+        if (IS_WEB_SOCKET_CONNECTION)
+            void asyncWebSocket()
 
         let PositionSubscrition: Location.LocationSubscription | undefined = undefined;
 
@@ -183,53 +187,21 @@ const useMapConnection = () => {
 
         }
 
-        void trackPosition()
-
-        // To unsubscribe to these update, just use:
+        if (IS_WEB_SOCKET_CONNECTION)
+            void trackPosition()
 
         let positionStreaming: NodeJS.Timer;
-        if (isSignedIn && isLoaded) {
 
-            if (profileState === 'active' && profileRole === 'taxi') {
+        const streamPosition = () => {
 
-                positionStreaming = setInterval(() => {
 
-                    sendMessageToServer(`taxiDriver-` + JSON.stringify({
-                        ...locationRef.current, coords: {
-                            heading: heading.trueHeading,
-                            ...locationRef.current?.coords
-                        },
-                        userId: user.id,
-                        profileRole: profileRoleRef.current,
-                        isConnected: isConnected,
-                    }))
+            if (isSignedIn && isLoaded) {
 
-                }, 3000)
-
-            } else if (profileState === 'streaming') {
-
-                if (profileRole === 'client') {
+                if (profileState === 'active' && profileRole === 'taxi') {
 
                     positionStreaming = setInterval(() => {
 
-                        sendMessageToServer(`clientTo-` + JSON.stringify({
-                            ...locationRef.current, coords: {
-                                heading: heading.trueHeading,
-                                ...locationRef.current?.coords
-                            },
-                            userId: user.id,
-                            profileRole: profileRoleRef.current,
-                            isConnected: isConnected,
-                            streamingTo: streamingToRef,
-                        }))
-
-                    }, 3000)
-
-                } else if (profileRole === 'taxi') {
-
-                    positionStreaming = setInterval(() => {
-
-                        sendMessageToServer(`taxiDriverTo-` + JSON.stringify({
+                        sendMessageToServer(`taxiDriver-` + JSON.stringify({
                             ...locationRef.current, coords: {
                                 heading: heading.trueHeading,
                                 ...locationRef.current?.coords
@@ -240,21 +212,62 @@ const useMapConnection = () => {
                         }))
 
                     }, 3000)
+
+                } else if (profileState === 'streaming') {
+
+                    if (profileRole === 'client') {
+
+                        positionStreaming = setInterval(() => {
+
+                            sendMessageToServer(`clientTo-` + JSON.stringify({
+                                ...locationRef.current, coords: {
+                                    heading: heading.trueHeading,
+                                    ...locationRef.current?.coords
+                                },
+                                userId: user.id,
+                                profileRole: profileRoleRef.current,
+                                isConnected: isConnected,
+                                streamingTo: streamingToRef,
+                            }))
+
+                        }, 3000)
+
+                    } else if (profileRole === 'taxi') {
+
+                        positionStreaming = setInterval(() => {
+
+                            sendMessageToServer(`taxiDriverTo-` + JSON.stringify({
+                                ...locationRef.current, coords: {
+                                    heading: heading.trueHeading,
+                                    ...locationRef.current?.coords
+                                },
+                                userId: user.id,
+                                profileRole: profileRoleRef.current,
+                                isConnected: isConnected,
+                            }))
+
+                        }, 3000)
+
+                    }
 
                 }
 
-            }
 
+            }
 
         }
+        if (IS_WEB_SOCKET_CONNECTION)
+            void streamPosition
 
         return () => {
-            positionStreaming && clearInterval(positionStreaming)
-            if (ws.current?.readyState === WebSocket.OPEN) {
-                ws.current?.close();
-                ws.current?.removeEventListener("message", handleWebSocketMessage);
+            if (IS_WEB_SOCKET_CONNECTION) {
+                positionStreaming && clearInterval(positionStreaming)
+                if (ws.current?.readyState === WebSocket.OPEN) {
+                    ws.current?.close();
+                    ws.current?.removeEventListener("message", handleWebSocketMessage);
+                }
+                PositionSubscrition && PositionSubscrition.remove()
             }
-            PositionSubscrition && PositionSubscrition.remove()
         };
     }, [isSignedIn, isConnected, profileRole, profileState]);
 
