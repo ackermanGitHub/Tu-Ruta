@@ -1,5 +1,6 @@
 /* eslint-disable */
-import { useOAuth } from "@clerk/clerk-expo";
+import { useOAuth, useSignUp } from "@clerk/clerk-expo";
+import { SignUpResource } from "@clerk/types";
 import React, { useEffect, useState } from "react";
 import * as WebBrowser from "expo-web-browser";
 import * as AuthSession from 'expo-auth-session'
@@ -20,7 +21,7 @@ const { UIManager } = NativeModules;
 UIManager.setLayoutAnimationEnabledExperimental &&
   UIManager.setLayoutAnimationEnabledExperimental(true);
 
-const SignWithOAuth = ({ action = 'sign-in', phoneNumber, isReduced = false }: { action?: 'sign-in' | 'sign-up', phoneNumber?: string, isReduced?: boolean }) => {
+const SignWithOAuth = ({ action = 'sign-in', phoneNumber, isReduced = false, isPhoneVerified, SignUp }: { action?: 'sign-in' | 'sign-up', phoneNumber?: string, isReduced?: boolean, isPhoneVerified?: boolean, SignUp?: any }) => {
 
   const redirectUrl = AuthSession.makeRedirectUri({
     path: '/',
@@ -60,13 +61,22 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, isReduced = false }: {
       const { createdSessionId, signIn, signUp, setActive } =
         await googleOAuthFlow();
 
-      // console.log(JSON.stringify({ createdSessionId, signIn, signUp, setActive }, null, 2));
-
       if (createdSessionId) {
         void setActive?.({ session: createdSessionId });
       } else {
-        // Modify this code to use signIn or signUp to set this missing requirements you set in your dashboard.
-        throw new Error("There are unmet requirements, modifiy this else to handle them")
+
+        if (isPhoneVerified && SignUp) {
+          const completeSignUp = await SignUp.update({
+            phoneNumber: phoneNumber,
+            emailAddress: signUp["emailAddress"],
+            password: '3rWx7Hf8',
+          })
+
+          void setActive?.({ session: completeSignUp.createdSessionId });
+          // Modify this code to use signIn or signUp to set this missing requirements you set in your dashboard.
+          // throw new Error("There are unmet requirements, modifiy this else to handle them")
+        }
+        console.log(JSON.stringify({ signUp, SignUp }, null, 2));
       }
     } catch (err) {
       console.log(JSON.stringify(err, null, 2));
@@ -138,13 +148,15 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, isReduced = false }: {
         </PressBtn>
       </View>
 
-      <Pressable
+      <View
         className="absolute bottom-0 right-0"
         style={{
           bottom: 0
         }}
       >
-        <PressBtn>
+        <PressBtn onPress={() => {
+          console.log(JSON.stringify({ phoneNumber, SignUp }, null, 2));
+        }}>
           <View
             className={'h-12 max-[367px]:h-10 flex-row bg-black dark:border-slate-600 border rounded-3xl justify-center items-center'}
             style={{
@@ -159,7 +171,7 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, isReduced = false }: {
             </Text>}
           </View>
         </PressBtn>
-      </Pressable>
+      </View>
 
     </View>
   );
