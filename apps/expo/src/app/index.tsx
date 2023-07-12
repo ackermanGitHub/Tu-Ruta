@@ -107,8 +107,8 @@ export default function Home() {
 
                 drawerStyle: [{
                     width: isLargeScreen ? width - (width / 4) : width - (width / 2),
-                    borderRightColor: colorScheme === 'dark' ? '#333333' : '#888888',
-                    borderRightWidth: 2,
+                    /* borderRightColor: colorScheme === 'dark' ? '#333333' : '#888888',
+                    borderRightWidth: 2, */
                 }],
                 drawerType: isLargeScreen ? 'permanent' : 'back',
                 overlayColor: 'transparent',

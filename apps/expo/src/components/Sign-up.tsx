@@ -31,7 +31,9 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
 
     const [email, setEmail] = useState('');
     const [emailError, _setEmailError] = useState('');
-    const [isEmailProvided, setIsEmailProvided] = useState(false)
+
+    const [oauthCompleted, setOauthCompleted] = useState(false)
+    const [isInfoProvided, setIsInfoProvided] = useState(false)
 
     const [firstName, setFirstName] = useState('');
     const [firstNameError, setFirstNameError] = useState('');
@@ -99,7 +101,8 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
             if (!isValid) {
                 return
             }
-            await signUp.create({
+
+            await signUp.update({
                 phoneNumber: '53' + phoneNumber.trim(),
             })
             await signUp.preparePhoneNumberVerification({ strategy: "phone_code" });
@@ -121,10 +124,13 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
 
         try {
             setIsLoading(true);
+
             const completeVerifyPhone = await signUp.attemptPhoneNumberVerification({
                 code,
             });
+
             // console.log(JSON.stringify({ fn: "handleVerifyPhone", signUp, completeVerifyPhone }, null, 2));
+            await setActive({ session: completeVerifyPhone.createdSessionId })
 
             setIsPhoneVerified(true)
             setPendingVerification(false);
@@ -136,7 +142,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
         }
     };
 
-    const handleSignUp = async () => {
+    const handleProvidedInfo = async () => {
 
         if (!isLoaded) {
             return;
@@ -145,12 +151,15 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
         try {
             setIsLoading(true);
 
-            const completeSignUp = await signUp.update({
+            /* const completeSignUp =  */await signUp.create({
                 emailAddress: email.trim(),
                 password: password.trim(),
+                firstName: firstName.trim(),
+                lastName: lastName.trim()
             });
-            // console.log(JSON.stringify({ fn: "handleSignUp", signUp, completeSignUp }, null, 2));
-            await setActive({ session: completeSignUp.createdSessionId })
+
+            // console.log(JSON.stringify({ fn: "handleProvidedInfo", signUp, completeSignUp }, null, 2));
+            // await setActive({ session: completeSignUp.createdSessionId })
             /* await fetch('https://192.168.66.191:3333/addNewProfile', {
                 method: 'POST',
                 headers: {
@@ -161,7 +170,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                 })
             }) */
 
-            setIsPhoneVerified(true)
+            setIsInfoProvided(true);
             setIsLoading(false);
 
         } catch (err) {
@@ -195,7 +204,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                 />
             </View>
 
-            {!pendingVerification && !isPhoneVerified && !isPhoneVerified && (
+            {(oauthCompleted || isInfoProvided) && !pendingVerification && !isPhoneVerified && (
                 <>
                     <View className={'relative w-4/5 max-[367px]:w-2/3 my-4 max-[367px]:my-2 flex-row justify-center items-center'}>
                         <View className='w-4/5 flex-row justify-center items-center'>
@@ -203,7 +212,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                                 <Text className='text-gray-500 dark:text-slate-500'>+53</Text>
                             </View>
                             <TextInput
-                                className={'h-12 max-[367px]:h-10 w-[80%] px-4 border rounded-r border-gray-300 dark:border-gray-600 dark:bg-transparent text-gray-500 dark:text-slate-500'}
+                                className={'h-12 max-[367px]:h-10 w-4/5 px-4 border rounded-r border-gray-300 dark:border-gray-600 dark:bg-transparent text-gray-500 dark:text-slate-500'}
                                 placeholder="Número de Móvil"
                                 autoCapitalize="none"
                                 keyboardType='numeric'
@@ -243,7 +252,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                 <>
                     <View className='w-4/5 max-[367px]:w-2/3 mb-4 max-[367px]:mb-2 justify-center items-center relative'>
                         <TextInput
-                            className={'h-12 max-[367px]:h-10 w-[80%] px-4 border rounded border-gray-300 dark:border-gray-800 dark:bg-transparent text-gray-500 dark:text-slate-500'}
+                            className={'h-12 max-[367px]:h-10 w-4/5 px-4 border rounded border-gray-300 dark:border-gray-800 dark:bg-transparent text-gray-500 dark:text-slate-500'}
                             placeholderTextColor={colorScheme === 'dark' ? "rgb(107 114 128)" : "rgb(100 116 139)"}
                             value={code}
                             placeholder="Codigo"
@@ -275,12 +284,14 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                 </>
             )}
 
-            {isPhoneVerified && (
+            {!oauthCompleted && !isInfoProvided && (
                 <>
-                    <SignWithOAuth action={'sign-up'} phoneNumber={phoneNumber} isReduced={isReduced} isPhoneVerified={isPhoneVerified} SignUp={signUp} />
+                    <SignWithOAuth afterOauthFlow={() => {
+                        setOauthCompleted(true)
+                    }} action={'sign-up'} phoneNumber={phoneNumber} isReduced={isReduced} isPhoneVerified={isPhoneVerified} SignUp={signUp} />
                     <View className={'w-4/5 max-[367px]:w-2/3 mb-4 max-[367px]:mb-2 justify-center items-center relative'}>
                         <TextInput
-                            className={'h-12 max-[367px]:h-10 w-[80%] px-4 border rounded border-gray-300 dark:bg-transparent dark:border-gray-600 text-gray-500 dark:text-slate-500'}
+                            className={'h-12 max-[367px]:h-10 w-4/5 px-4 border rounded border-gray-300 dark:bg-transparent dark:border-gray-600 text-gray-500 dark:text-slate-500'}
                             placeholder="Email"
                             autoCapitalize="none"
                             placeholderTextColor={colorScheme === 'dark' ? "rgb(107 114 128)" : "rgb(100 116 139)"}
@@ -304,7 +315,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                     </View>
                     <View className={'w-4/5 max-[367px]:w-2/3 mb-4 max-[367px]:mb-2 justify-center items-center'}>
                         <TextInput
-                            className={'h-12 max-[367px]:h-10 w-[80%] px-4 border rounded border-gray-300 dark:bg-transparent dark:border-gray-600 text-gray-500 dark:text-slate-500'}
+                            className={'h-12 max-[367px]:h-10 w-4/5 px-4 border rounded border-gray-300 dark:bg-transparent dark:border-gray-600 text-gray-500 dark:text-slate-500'}
                             placeholder="Contraseña"
                             autoCapitalize="none"
                             placeholderTextColor={colorScheme === 'dark' ? "rgb(107 114 128)" : "rgb(100 116 139)"}
@@ -327,8 +338,61 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                         }
                     </View>
 
-                    <PressBtn onPress={() => { void handleSignUp() }} className={'w-[200px] max-[367px]:w-[180px] max-w-[280px] bg-[#FCCB6F] mb-2 dark:bg-white rounded-3xl h-12 max-[367px]:h-8 flex-row justify-center items-center'} >
-                        <Text darkColor="black" className={'text-white dark:text-black font-bold text-lg max-[367px]:text-base mr-3'}>Crear Cuenta</Text>
+                    <View className={'w-4/5 max-[367px]:w-2/3 mb-4 max-[367px]:mb-2 justify-center items-center'}>
+                        <View className='w-4/5 flex-row justify-between items-center'>
+                            <View className='w-[47%] relative'>
+                                <TextInput
+                                    className={'h-12 max-[367px]:h-10 w-full px-4 border rounded border-gray-300 dark:bg-transparent dark:border-gray-600 text-gray-500 dark:text-slate-500'}
+                                    placeholder="Nombre"
+                                    autoCapitalize="none"
+                                    placeholderTextColor={colorScheme === 'dark' ? "rgb(107 114 128)" : "rgb(100 116 139)"}
+                                    onChangeText={setFirstName}
+                                    value={firstName}
+
+                                    onFocus={() => {
+                                        reduceLogo()
+                                    }}
+                                />
+                                {
+                                    firstNameError &&
+                                    <View className='absolute right-2 my-auto'>
+                                        <MaterialIcons
+                                            name='error'
+                                            size={24}
+                                            color={Colors[colorScheme ?? 'light'].text}
+                                        />
+                                    </View>
+                                }
+                            </View>
+                            <View className='w-[47%] relative'>
+                                <TextInput
+                                    className={'h-12 max-[367px]:h-10 w-full px-4 border rounded border-gray-300 dark:bg-transparent dark:border-gray-600 text-gray-500 dark:text-slate-500'}
+                                    placeholder="Apellido"
+                                    autoCapitalize="none"
+                                    placeholderTextColor={colorScheme === 'dark' ? "rgb(107 114 128)" : "rgb(100 116 139)"}
+                                    onChangeText={setLastName}
+                                    value={lastName}
+
+                                    onFocus={() => {
+                                        reduceLogo()
+                                    }}
+                                />
+                                {
+                                    lastNameError &&
+                                    <View className='absolute right-2 my-auto'>
+                                        <MaterialIcons
+                                            name='error'
+                                            size={24}
+                                            color={Colors[colorScheme ?? 'light'].text}
+                                        />
+                                    </View>
+                                }
+                            </View>
+                        </View>
+                    </View>
+
+                    <PressBtn onPress={() => { void handleProvidedInfo() }} className={'w-[200px] max-[367px]:w-[180px] max-w-[280px] bg-[#FCCB6F] mb-2 dark:bg-white rounded-3xl h-12 max-[367px]:h-8 flex-row justify-center items-center'} >
+                        <Text darkColor="black" className={'text-white dark:text-black font-bold text-lg max-[367px]:text-base mr-3'}>Continuar</Text>
                         {isLoading && <ActivityIndicator
                             size={'small'}
                             animating

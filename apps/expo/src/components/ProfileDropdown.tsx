@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
     Pressable,
     Animated,
@@ -15,6 +15,9 @@ const ProfileDropdown = () => {
     const [isOpen, setIsOpen] = React.useState(false);
     const { colorScheme } = useColorScheme()
     const { isLoaded, signOut } = useAuth();
+
+    const [width, setWidth] = useState();
+    const [height, setHeight] = useState();
 
     const handleOpenDropdown = () => {
         setIsOpen(() => true)
@@ -41,7 +44,7 @@ const ProfileDropdown = () => {
                 onPress={handleOpenDropdown}
                 className='w-8 h-8 absolute justify-center items-center rounded-full right-5 top-5 z-20'
                 style={{
-                    backgroundColor: colorScheme === 'light' ? 'rgba(203,213,225,0.7)' : 'rgba(26,18,11,0.7)',
+                    backgroundColor: colorScheme === 'light' ? 'white' : 'black',
                 }}
             >
                 <Feather
