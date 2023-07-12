@@ -21,7 +21,7 @@ const { UIManager } = NativeModules;
 UIManager.setLayoutAnimationEnabledExperimental &&
   UIManager.setLayoutAnimationEnabledExperimental(true);
 
-const SignWithOAuth = ({ action = 'sign-in', phoneNumber, isReduced = false, isPhoneVerified, SignUp }: { action?: 'sign-in' | 'sign-up', phoneNumber?: string, isReduced?: boolean, isPhoneVerified?: boolean, SignUp?: any }) => {
+const SignWithOAuth = ({ action = 'sign-in', phoneNumber, isReduced = false, isPhoneVerified, SignUp, afterOauthFlow }: { action?: 'sign-in' | 'sign-up', phoneNumber?: string, isReduced?: boolean, isPhoneVerified?: boolean, SignUp?: any, afterOauthFlow?: () => void }) => {
 
   const redirectUrl = AuthSession.makeRedirectUri({
     path: '/',
@@ -66,16 +66,17 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, isReduced = false, isP
       } else {
 
         if (isPhoneVerified && SignUp) {
-          const completeSignUp = await SignUp.update({
-            phoneNumber: phoneNumber,
-            emailAddress: signUp["emailAddress"],
-            password: '3rWx7Hf8',
-          })
+          //const completeSignUp = await SignUp.update({
+          //  phoneNumber: phoneNumber,
+          //  emailAddress: signUp["emailAddress"],
+          //  password: '3rWx7Hf8',
+          //})
+          //void setActive?.({ session: completeSignUp.createdSessionId });
 
-          void setActive?.({ session: completeSignUp.createdSessionId });
           // Modify this code to use signIn or signUp to set this missing requirements you set in your dashboard.
           // throw new Error("There are unmet requirements, modifiy this else to handle them")
         }
+        afterOauthFlow && afterOauthFlow()
         console.log(JSON.stringify({ signUp, SignUp }, null, 2));
       }
     } catch (err) {

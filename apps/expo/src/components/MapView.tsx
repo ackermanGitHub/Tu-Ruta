@@ -43,6 +43,10 @@ void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE
 
 const snapPoints = ["25%", "48%", "75%"];
 
+/* 
+AIzaSyAtcwUbA0jjJ6ARXl5_FqIqYcGbTI_XZEE
+*/
+
 const MapViewComponent = () => {
     const [profileRole, _setProfileRole] = useAtom(profileRoleAtom)
     const [profileState, setProfileState] = useAtom(profileStateAtom)
@@ -175,7 +179,7 @@ const MapViewComponent = () => {
                                     latitudeDelta: 0.0033333,
                                 });
                             }
-
+                            openUserProfile()
                         }}
                     >
                         <MaterialIcons
@@ -191,6 +195,7 @@ const MapViewComponent = () => {
                     index={1}
                     snapPoints={snapPoints}
                     backgroundStyle={{ borderRadius: 50, backgroundColor: colorScheme === 'light' ? 'rgba(203,213,225,0.8)' : 'rgba(26,18,11,0.5)' }}
+                    /* backgroundStyle={{ borderRadius: 50, backgroundColor: colorScheme === 'light' ? 'white' : 'black' }} */
                     onDismiss={() => {
                         setIsModalVisible(false)
                         setUserSelected(false)
