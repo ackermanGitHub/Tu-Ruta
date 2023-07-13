@@ -6,14 +6,14 @@ import {
     StatusBar,
     Switch
 } from "react-native";
-
+import MapViewDirections from 'react-native-maps-directions';
 import {
     BottomSheetModal,
     BottomSheetModalProvider,
 } from "@gorhom/bottom-sheet";
 
 import { NightMap } from '../styles/NightMap';
-import MapView, { /* Circle, Marker, */ type MapMarker, type Region/* , MarkerAnimated */ } from 'react-native-maps';
+import MapView, { type MapMarker, type Region, PROVIDER_GOOGLE } from 'react-native-maps';
 
 import { type MarkerData } from '../constants/Markers';
 import useMapConnection from '../hooks/useMapConnection';
@@ -43,9 +43,9 @@ void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE
 
 const snapPoints = ["25%", "48%", "75%"];
 
-/* 
-AIzaSyAtcwUbA0jjJ6ARXl5_FqIqYcGbTI_XZEE
-*/
+const origin = { latitude: 23.121715394724493, longitude: -82.38003462553024 };
+const destination = { latitude: 23.1286927367378, longitude: -82.39208780229092 };
+const GOOGLE_MAPS_APIKEY = 'AIzaSyAtcwUbA0jjJ6ARXl5_FqIqYcGbTI_XZEE';
 
 const MapViewComponent = () => {
     const [profileRole, _setProfileRole] = useAtom(profileRoleAtom)
@@ -137,7 +137,12 @@ const MapViewComponent = () => {
                     }}
                     showsCompass={false}
                     ref={mapViewRef}
+                    provider={PROVIDER_GOOGLE}
                     customMapStyle={colorScheme === 'dark' ? NightMap : undefined}
+                    onLongPress={(e) => console.log(e.nativeEvent.coordinate)}
+                    onRegionChangeComplete={(e) => console.log(e)}
+                    onMapReady={() => console.log('Map Ready')}
+                    onLayout={() => console.log('Layout Ready')}
                 >
 
                     {markers.map((marker: MarkerData, index: number) => {
@@ -148,7 +153,13 @@ const MapViewComponent = () => {
 
                     {location && <UserMarker onPress={openUserProfile} coordinate={location.coords} description='' title='' userId='' heading={heading} />}
 
+                    <MapViewDirections
+                        origin={origin}
+                        destination={destination}
+                        apikey={GOOGLE_MAPS_APIKEY}
+                    />
                 </MapView>
+
 
                 <Animated.View
                     className={'bg-transparent absolute z-20 bottom-24 right-12 flex-row justify-center items-center text-center self-center rounded-full'}

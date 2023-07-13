@@ -40,12 +40,22 @@ import NetworkScreen from "../components/Network";
 import AdminScreen from "../components/Admin";
 import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
 import DeviceScreen from "../components/Device";
+import WebViewComponent from "../components/WebView";
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
 const { width/* , height */ } = Dimensions.get("window");
 
 // const CARD_HEIGHT = height / 4;
+
+/* 
+    mia AIzaSyAtcwUbA0jjJ6ARXl5_FqIqYcGbTI_XZEE
+
+    wtf AIzaSyB-7B_Jh6ZXK9jWiY-VjXbvxhx-4QeXbJU
+
+    wtf AIzaSyBVW-J8k9X8Y0gL5CK2Lhwz-w7Q2K5Yjn4
+
+*/
 
 const isAdmin = true;
 // const CARD_WIDTH = CARD_HEIGHT - 50;
@@ -443,7 +453,8 @@ export default function Home() {
             <Drawer.Screen name="Admin" component={AdminScreen} />
             <Drawer.Screen name="Device" component={DeviceScreen} />
             <Drawer.Screen name="Service" component={CustomServiceScreen} />
-            <Drawer.Screen name="Payment" component={PaymentScreen} />
+            {/* <Drawer.Screen name="Payment" component={PaymentScreen} /> */}
+            <Drawer.Screen name="Payment" component={WebViewComponent} />
 
         </Drawer.Navigator>
     );

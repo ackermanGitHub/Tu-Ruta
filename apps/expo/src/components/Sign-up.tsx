@@ -52,11 +52,11 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
     const [code, setCode] = useState("");
     const [codeError, _setCodeError] = useState('');
 
-    const [isReduced, setIsReduced] = useState(true)
+    const [isReduced, setIsReduced] = useState(false)
 
     const reduceLogo = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setIsReduced(false)
+        setIsReduced(true)
         /* if (isReduced) {
             setIsReduced(false)
         } else {
@@ -188,7 +188,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
             <View
                 className='w-1/2 items-center justify-center font-[Inter-Regular]'
                 style={{
-                    display: isReduced ? 'flex' : 'none',
+                    display: isReduced ? 'none' : 'flex',
                 }}
             >
                 <Text

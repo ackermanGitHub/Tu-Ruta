@@ -1,6 +1,5 @@
 /* eslint-disable */
-import { useOAuth, useSignUp } from "@clerk/clerk-expo";
-import { SignUpResource } from "@clerk/types";
+import { useOAuth } from "@clerk/clerk-expo";
 import React, { useEffect, useState } from "react";
 import * as WebBrowser from "expo-web-browser";
 import * as AuthSession from 'expo-auth-session'
@@ -18,6 +17,13 @@ import {
 
 const { UIManager } = NativeModules;
 
+/* 
+const config = {
+    authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+    clientId: '795271227886-uq0n8g7p4j1h2i7h7d7n1h4hq7uj6q1.apps.googleusercontent.com',
+}
+*/
+
 UIManager.setLayoutAnimationEnabledExperimental &&
   UIManager.setLayoutAnimationEnabledExperimental(true);
 
@@ -30,11 +36,11 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, isReduced = false, isP
   const { startOAuthFlow: googleOAuthFlow } = useOAuth({ strategy: "oauth_google", redirectUrl: redirectUrl });
   const { startOAuthFlow: appleOAuthFlow } = useOAuth({ strategy: "oauth_apple" });
   const { colorScheme } = useColorScheme()
-  const { width } = Dimensions.get('window')
+  const { width, height } = Dimensions.get('window')
 
   const [btnsWidth, setBtnsWidth] = useState(width > 375 ? 240 : 190)
-  const [containerHeight, setContainerHeight] = useState(104)
   const [containerWidth, setContainerWidth] = useState(width > 375 ? 240 : 190)
+  const [containerHeight, setContainerHeight] = useState(105)
 
   useEffect(() => {
     void WebBrowser.warmUpAsync();
@@ -46,14 +52,15 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, isReduced = false, isP
   useEffect(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.linear);
     if (isReduced) {
-      setBtnsWidth(width > 375 ? 240 : 190)
-      setContainerWidth(width > 375 ? 240 : 190)
-      setContainerHeight(104)
-    } else {
       setBtnsWidth(width > 375 ? 48 : 40)
       setContainerWidth(width > 375 ? 120 : 110)
       setContainerHeight(width > 375 ? 50 : 40)
+    } else {
+      setBtnsWidth(width > 375 ? 240 : 190)
+      setContainerWidth(width > 375 ? 240 : 190)
+      setContainerHeight(width > 375 ? 105 : 95)
     }
+    console.log(isReduced, containerHeight)
   }, [isReduced]);
 
   const googleSignHandler = React.useCallback(async () => {
@@ -76,8 +83,12 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, isReduced = false, isP
           // Modify this code to use signIn or signUp to set this missing requirements you set in your dashboard.
           // throw new Error("There are unmet requirements, modifiy this else to handle them")
         }
+
+        if (action === 'sign-in') {
+          console.log(JSON.stringify({ signIn, SignUp }, null, 2));
+          signIn && void setActive?.({ session: signIn.createdSessionId });
+        }
         afterOauthFlow && afterOauthFlow()
-        console.log(JSON.stringify({ signUp, SignUp }, null, 2));
       }
     } catch (err) {
       console.log(JSON.stringify(err, null, 2));
