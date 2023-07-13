@@ -42,11 +42,6 @@ export default function SignIn({ navigation }: { navigation?: DrawerNavigationPr
     const reduceLogo = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setIsReduced(true)
-        /* if (isReduced) {
-            setIsReduced(false)
-        } else {
-            setIsReduced(true)
-        } */
     }
 
     const handleSignIn = async () => {
@@ -99,7 +94,11 @@ export default function SignIn({ navigation }: { navigation?: DrawerNavigationPr
 
 
             <KeyboardAvoidingView behavior="height" className='w-full justify-center items-center'>
-                <SignWithOAuth action={'sign-in'} isReduced={isReduced} />
+                <SignWithOAuth action={'sign-in'} isReduced={isReduced}
+                    afterOauthFlow={() => {
+                        navigation?.navigate('Map')
+                    }}
+                />
                 <View className={'w-4/5 max-[367px]:w-2/3 mb-4 max-[367px]:mb-2 relative justify-center items-center'}>
                     <TextInput
                         className={'h-12 max-[367px]:h-10 w-[80%] px-4 border rounded border-gray-300 dark:text-slate-500 dark:bg-transparent dark:border-gray-600'}
@@ -164,7 +163,12 @@ export default function SignIn({ navigation }: { navigation?: DrawerNavigationPr
                         color={colorScheme === 'light' ? 'white' : 'black'}
                     />}
                 </PressBtn>
-                <PressBtn className={'flex-row items-center justify-center my-2'} onPress={() => { navigation && navigation.navigate('Sign-Up') }}>
+                <PressBtn className={'flex-row items-center justify-center my-2'}
+                    onPress={() => {
+                        LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+                        navigation && navigation.navigate('Sign-Up');
+                    }}
+                >
                     <Text className={'text-sm max-[367px]:text-xs font-light dark:text-gray-400'}>No Tienes Cuenta?</Text>
                     <Text className={'text-[#2e78b7] font-normal ml-1 text-sm max-[367px]:text-xs'}>Crear Cuenta</Text>
                 </PressBtn>

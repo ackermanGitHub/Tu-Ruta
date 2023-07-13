@@ -23,11 +23,13 @@ import { PressBtn } from '../styles/PressBtn';
 import usePressIn from '../hooks/usePressIn';
 
 import MapViewScreen from '../components/MapView';
-// import StackScreen from '../components/Stack';
 import HistoryScreen from '../components/History';
 import ConfigScreen from '../components/Config';
 import CustomServiceScreen from '../components/CustomService';
+import DeviceScreen from "../components/Device";
 import PaymentScreen from '../components/Payment';
+import NetworkScreen from "../components/Network";
+import AdminScreen from "../components/Admin";
 
 import { useColorScheme } from 'nativewind';
 import SignUp from "../components/Sign-up";
@@ -36,17 +38,12 @@ import NetInfo from '@react-native-community/netinfo';
 
 import { useAtom } from 'jotai'
 // import { useRef } from "react";
-import NetworkScreen from "../components/Network";
-import AdminScreen from "../components/Admin";
 import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
-import DeviceScreen from "../components/Device";
-import WebViewComponent from "../components/WebView";
+
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
-const { width/* , height */ } = Dimensions.get("window");
-
-// const CARD_HEIGHT = height / 4;
+const { width } = Dimensions.get("window");
 
 /* 
     mia AIzaSyAtcwUbA0jjJ6ARXl5_FqIqYcGbTI_XZEE
@@ -58,7 +55,7 @@ const { width/* , height */ } = Dimensions.get("window");
 */
 
 const isAdmin = true;
-// const CARD_WIDTH = CARD_HEIGHT - 50;
+
 export type DrawerParamList = {
     "Sign-In": undefined;
     "Sign-Up": undefined;
@@ -78,27 +75,7 @@ const Drawer = createDrawerNavigator<DrawerParamList>();
 
 export default function Home() {
 
-    /* const dropdownVisible = useRef(new Animated.Value(1)).current;
-
-    const handleOpenDropdown = () => {
-        Animated.timing(dropdownVisible, {
-            toValue: 1,
-            duration: 175,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    const handleCloseDropdown = () => {
-        Animated.timing(dropdownVisible, {
-            toValue: 0,
-            duration: 150,
-            useNativeDriver: true,
-        }).start();
-    }; */
-
     const isLargeScreen = width >= 768;
-
-    // const isSmallScreen = width <= 376;
 
     const { user, isLoaded, isSignedIn } = useUser();
 
@@ -453,8 +430,7 @@ export default function Home() {
             <Drawer.Screen name="Admin" component={AdminScreen} />
             <Drawer.Screen name="Device" component={DeviceScreen} />
             <Drawer.Screen name="Service" component={CustomServiceScreen} />
-            {/* <Drawer.Screen name="Payment" component={PaymentScreen} /> */}
-            <Drawer.Screen name="Payment" component={WebViewComponent} />
+            <Drawer.Screen name="Payment" component={PaymentScreen} />
 
         </Drawer.Navigator>
     );

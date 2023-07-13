@@ -36,10 +36,10 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
     const [isInfoProvided, setIsInfoProvided] = useState(false)
 
     const [firstName, setFirstName] = useState('');
-    const [firstNameError, setFirstNameError] = useState('');
+    const [firstNameError, _setFirstNameError] = useState('');
 
     const [lastName, setLastName] = useState('');
-    const [lastNameError, setLastNameError] = useState('');
+    const [lastNameError, _setLastNameError] = useState('');
 
     const [password, setPassword] = useState('');
     const [passwordError, _setPasswordError] = useState('');
@@ -57,11 +57,6 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
     const reduceLogo = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setIsReduced(true)
-        /* if (isReduced) {
-            setIsReduced(false)
-        } else {
-            setIsReduced(true)
-        } */
     }
 
     const isValidPhone = (phoneNumber: string) => {
@@ -129,8 +124,9 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                 code,
             });
 
-            // console.log(JSON.stringify({ fn: "handleVerifyPhone", signUp, completeVerifyPhone }, null, 2));
             await setActive({ session: completeVerifyPhone.createdSessionId })
+
+            navigation?.navigate('Map');
 
             setIsPhoneVerified(true)
             setPendingVerification(false);
@@ -151,24 +147,12 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
         try {
             setIsLoading(true);
 
-            /* const completeSignUp =  */await signUp.create({
+            await signUp.create({
                 emailAddress: email.trim(),
                 password: password.trim(),
                 firstName: firstName.trim(),
                 lastName: lastName.trim()
             });
-
-            // console.log(JSON.stringify({ fn: "handleProvidedInfo", signUp, completeSignUp }, null, 2));
-            // await setActive({ session: completeSignUp.createdSessionId })
-            /* await fetch('https://192.168.66.191:3333/addNewProfile', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json', 
-                },
-                body: JSON.stringify({
-                     
-                })
-            }) */
 
             setIsInfoProvided(true);
             setIsLoading(false);
@@ -288,7 +272,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                 <>
                     <SignWithOAuth afterOauthFlow={() => {
                         setOauthCompleted(true)
-                    }} action={'sign-up'} phoneNumber={phoneNumber} isReduced={isReduced} isPhoneVerified={isPhoneVerified} SignUp={signUp} />
+                    }} action={'sign-up'} phoneNumber={phoneNumber} password={password} isReduced={isReduced} isPhoneVerified={isPhoneVerified} SignUp={signUp} />
                     <View className={'w-4/5 max-[367px]:w-2/3 mb-4 max-[367px]:mb-2 justify-center items-center relative'}>
                         <TextInput
                             className={'h-12 max-[367px]:h-10 w-4/5 px-4 border rounded border-gray-300 dark:bg-transparent dark:border-gray-600 text-gray-500 dark:text-slate-500'}

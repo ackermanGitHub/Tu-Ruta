@@ -27,7 +27,7 @@ const config = {
 UIManager.setLayoutAnimationEnabledExperimental &&
   UIManager.setLayoutAnimationEnabledExperimental(true);
 
-const SignWithOAuth = ({ action = 'sign-in', phoneNumber, isReduced = false, isPhoneVerified, SignUp, afterOauthFlow }: { action?: 'sign-in' | 'sign-up', phoneNumber?: string, isReduced?: boolean, isPhoneVerified?: boolean, SignUp?: any, afterOauthFlow?: () => void }) => {
+const SignWithOAuth = ({ action = 'sign-in', phoneNumber, password, isReduced = false, isPhoneVerified, SignUp, afterOauthFlow }: { action?: 'sign-in' | 'sign-up', phoneNumber?: string, password?: string, isReduced?: boolean, isPhoneVerified?: boolean, SignUp?: any, afterOauthFlow?: () => void }) => {
 
   const redirectUrl = AuthSession.makeRedirectUri({
     path: '/',
@@ -60,7 +60,6 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, isReduced = false, isP
       setContainerWidth(width > 375 ? 240 : 190)
       setContainerHeight(width > 375 ? 105 : 95)
     }
-    console.log(isReduced, containerHeight)
   }, [isReduced]);
 
   const googleSignHandler = React.useCallback(async () => {
@@ -72,24 +71,15 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, isReduced = false, isP
         void setActive?.({ session: createdSessionId });
       } else {
 
-        if (isPhoneVerified && SignUp) {
-          //const completeSignUp = await SignUp.update({
-          //  phoneNumber: phoneNumber,
-          //  emailAddress: signUp["emailAddress"],
-          //  password: '3rWx7Hf8',
-          //})
-          //void setActive?.({ session: completeSignUp.createdSessionId });
-
-          // Modify this code to use signIn or signUp to set this missing requirements you set in your dashboard.
-          // throw new Error("There are unmet requirements, modifiy this else to handle them")
-        }
-
         if (action === 'sign-in') {
-          console.log(JSON.stringify({ signIn, SignUp }, null, 2));
           signIn && void setActive?.({ session: signIn.createdSessionId });
         }
-        afterOauthFlow && afterOauthFlow()
+        console.log("afterOauthFlow")
+
       }
+
+      afterOauthFlow && afterOauthFlow()
+
     } catch (err) {
       console.log(JSON.stringify(err, null, 2));
       console.error("OAuth error", err);

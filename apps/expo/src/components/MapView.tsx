@@ -29,12 +29,13 @@ import usePressIn from '../hooks/usePressIn';
 import { useColorScheme } from 'nativewind';
 
 import { useKeepAwake } from 'expo-keep-awake';
-import ProfileDropdown from './ProfileDropdown';
+// import ProfileDropdown from './ProfileDropdown';
 import { PressBtn } from '../styles/PressBtn';
 import UserMarker from '../markers/UserMarker';
 import CarMarker from '../markers/CarMarker';
 import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
 import { useAtom } from 'jotai';
+import LayoutDropdown from './LayoutDropdown';
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
@@ -139,10 +140,6 @@ const MapViewComponent = () => {
                     ref={mapViewRef}
                     provider={PROVIDER_GOOGLE}
                     customMapStyle={colorScheme === 'dark' ? NightMap : undefined}
-                    onLongPress={(e) => console.log(e.nativeEvent.coordinate)}
-                    onRegionChangeComplete={(e) => console.log(e)}
-                    onMapReady={() => console.log('Map Ready')}
-                    onLayout={() => console.log('Layout Ready')}
                 >
 
                     {markers.map((marker: MarkerData, index: number) => {
@@ -258,7 +255,7 @@ const MapViewComponent = () => {
                             </View>
                         )}
 
-                        {userSelected && isSignedIn && isLoaded && (
+                        {(userSelected && isSignedIn && isLoaded) || true && (
                             <View className='w-full h-full'>
 
                                 <Animated.Image
@@ -269,7 +266,7 @@ const MapViewComponent = () => {
                                     resizeMode="cover"
                                 />
 
-                                <ProfileDropdown />
+                                <LayoutDropdown />
 
                                 <View className={'absolute left-5 top-40 border-2 border-solid border-white dark:border-black w-16 h-16 rounded-full overflow-hidden'}>
                                     <Animated.Image
@@ -283,8 +280,8 @@ const MapViewComponent = () => {
 
                                 <View className={'w-full h-20 justify-between flex-row bg-transparent'}>
                                     <View className='bg-transparent h-full justify-end ml-5'>
-                                        <Text className='font-bold text-lg'>{`${user.firstName} ${user.lastName}`}</Text>
-                                        <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@{`${user.username}`}</Text>
+                                        <Text className='font-bold text-lg'>{`${user?.firstName || "Julio"} ${user?.lastName || "López"}`}</Text>
+                                        <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@{`${user?.username || "julydev"}`}</Text>
                                     </View>
                                     <PressBtn onPress={() => { return }}>
                                         <View className='h-10 w-32 mt-3 mr-5 justify-center items-center rounded-2xl border-zinc-400 dark:border-zinc-800'>

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import {
     Pressable,
     Animated,
@@ -15,9 +15,6 @@ const ProfileDropdown = () => {
     const [isOpen, setIsOpen] = React.useState(false);
     const { colorScheme } = useColorScheme()
     const { isLoaded, signOut } = useAuth();
-
-    const [width, setWidth] = useState();
-    const [height, setHeight] = useState();
 
     const handleOpenDropdown = () => {
         setIsOpen(() => true)
