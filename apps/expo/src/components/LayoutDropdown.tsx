@@ -25,16 +25,24 @@ const LayoutDropdown = () => {
     const { colorScheme } = useColorScheme();
     const { isLoaded, signOut } = useAuth();
 
-    const [width, setWidth] = useState(1);
-    const [height, setHeight] = useState(1);
+    const [width, setWidth] = useState(32);
+    const [height, setHeight] = useState(32);
 
     const handleOpenDropdown = () => {
         LayoutAnimation.configureNext({
             duration: 500,
             update: {
-                type: 'easeIn',
+                type: 'easeInEaseOut',
                 property: 'scaleXY',
-            }
+            },
+            create: {
+                type: 'easeInEaseOut',
+                property: 'scaleXY',
+            },
+            delete: {
+                type: 'easeInEaseOut',
+                property: 'scaleXY',
+            },
         })
         setWidth(150)
         setHeight(150)
@@ -45,53 +53,64 @@ const LayoutDropdown = () => {
         LayoutAnimation.configureNext({
             duration: 500,
             update: {
-                type: 'easeOut',
+                type: 'easeInEaseOut',
                 property: 'scaleXY',
-            }
+            },
+            create: {
+                type: 'easeInEaseOut',
+                property: 'scaleXY',
+            },
+            delete: {
+                type: 'easeInEaseOut',
+                property: 'scaleXY',
+            },
         })
-        setWidth(1)
-        setHeight(1)
+        setWidth(32)
+        setHeight(32)
         setIsOpen(false)
     };
 
     return (
         <>
-            <View
-                className='absolute z-30 right-5 top-5 justify-evenly bg-gray-200 dark:bg-zinc-900 shadow-sm dark:shadow-zinc-300 rounded-md'
-                style={{
-                    width,
-                    height,
-                }}
-
-            >
-                <Pressable onPress={() => { console.log("Cambiar Imagen") }}>
-                    <Text className='text-sm '>Cambiar Imagen</Text>
-                </Pressable>
-                <Pressable onPress={() => { console.log("Cambiar Nombre") }}>
-                    <Text className='text-sm '>Cambiar Nombre</Text>
-                </Pressable>
-                <Pressable onPress={() => {
-                    console.log('closing session')
-                    if (isLoaded) {
-                        void signOut()
-                    }
-                }}>
-                    <Text className='text-sm '>Cerrar Sesión</Text>
-                </Pressable>
-            </View>
-
             <Pressable
                 onPress={handleOpenDropdown}
-                className='w-8 h-8 absolute justify-center items-center rounded-full right-5 top-5 z-20'
+                className='absolute justify-center items-center right-5 top-5 z-50'
                 style={{
                     backgroundColor: colorScheme === 'light' ? 'white' : 'black',
+                    width,
+                    height,
+                    borderRadius: isOpen ? 5 : 150,
+                    justifyContent: isOpen ? 'space-evenly' : 'center',
+                    alignItems: 'center',
                 }}
             >
-                <Feather
-                    name='more-vertical'
-                    size={20}
-                    color={Colors[colorScheme ?? 'light'].text}
-                />
+                {
+                    !isOpen && <Feather
+                        name='more-vertical'
+                        size={20}
+                        color={Colors[colorScheme ?? 'light'].text}
+                    />
+                }
+
+                {isOpen &&
+                    <>
+                        <Pressable onPress={() => { console.log("Cambiar Imagen") }}>
+                            <Text className='text-sm '>Cambiar Imagen</Text>
+                        </Pressable>
+                        <Pressable onPress={() => { console.log("Cambiar Nombre") }}>
+                            <Text className='text-sm '>Cambiar Nombre</Text>
+                        </Pressable>
+                        <Pressable onPress={() => {
+                            console.log('closing session')
+                            if (isLoaded) {
+                                void signOut()
+                            }
+                        }}>
+                            <Text className='text-sm '>Cerrar Sesión</Text>
+                        </Pressable>
+                    </>
+                }
+
             </Pressable>
 
             <Pressable onPress={handleCloseDropdown}
