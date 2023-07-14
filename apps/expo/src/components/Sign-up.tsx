@@ -16,12 +16,12 @@ import { Image } from 'expo-image';
 import TuRutaLogo from '../../assets/Logo.png'
 import { type DrawerParamList } from '../app';
 import Colors from '../styles/Colors';
-
+/* 
 const { UIManager } = NativeModules;
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
-
+ */
 export default function SignUp({ navigation }: { navigation?: DrawerNavigationProp<DrawerParamList> }) {
 
     const { isLoaded, signUp, setActive } = useSignUp();

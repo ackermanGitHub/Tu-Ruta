@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import {
     NativeModules,
+    Platform,
     LayoutAnimation,
     Pressable,
     /* TouchableWithoutFeedback, */
-    Platform
 } from 'react-native';
+import { BlurView } from "@react-native-community/blur";
 
 import { Text, View } from '../styles/Themed';
 import { Feather } from '@expo/vector-icons';
@@ -22,7 +23,6 @@ const LayoutDropdown = () => {
     const [height, setHeight] = useState(32);
 
     const handleOpenDropdown = () => {
-        setIsOpen(true)
         LayoutAnimation.configureNext({
             duration: 300,
             update: {
@@ -40,24 +40,25 @@ const LayoutDropdown = () => {
         })
         setWidth(150)
         setHeight(150)
+        setIsOpen(true)
     };
 
     const handleCloseDropdown = () => {
-        /* LayoutAnimation.configureNext({
+        LayoutAnimation.configureNext({
             duration: 200,
             update: {
-                type: 'linear',
-                property: 'opacity',
+                type: 'easeInEaseOut',
+                property: 'scaleXY',
             },
             create: {
-                type: 'linear',
-                property: 'opacity',
+                type: 'easeInEaseOut',
+                property: 'scaleXY',
             },
             delete: {
-                type: 'linear',
-                property: 'opacity',
+                type: 'easeInEaseOut',
+                property: 'scaleXY',
             },
-        }) */
+        })
         setWidth(32)
         setHeight(32)
         setIsOpen(false)
@@ -106,13 +107,13 @@ const LayoutDropdown = () => {
 
             </Pressable>
 
-            <Pressable
-                onPress={handleCloseDropdown}
+            <Pressable onPress={handleCloseDropdown}
                 style={{
                     display: isOpen ? 'flex' : 'none',
                 }}
-                className='w-full h-full absolute z-20 opacity-20 bg-slate-500'
+                className='w-full h-full absolute z-20'
             />
+
 
         </>
     )

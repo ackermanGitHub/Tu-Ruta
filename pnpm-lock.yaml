@@ -50,6 +50,9 @@ importers:
       '@react-native-async-storage/async-storage':
         specifier: 1.18.2
         version: 1.18.2(react-native@0.72.1)
+      '@react-native-community/blur':
+        specifier: ^4.3.2
+        version: 4.3.2(react-native@0.72.1)(react@18.2.0)
       '@react-native-community/netinfo':
         specifier: 9.3.10
         version: 9.3.10(react-native@0.72.1)
@@ -3106,6 +3109,16 @@ packages:
       react-native: ^0.0.0-0 || 0.60 - 0.72 || 1000.0.0
     dependencies:
       merge-options: 3.0.4
+      react-native: 0.72.1(@babel/core@7.20.5)(@babel/preset-env@7.20.2)(react@18.2.0)
+    dev: false
+
+  /@react-native-community/blur@4.3.2(react-native@0.72.1)(react@18.2.0):
+    resolution: {integrity: sha512-0ID+pyZKdC4RdgC7HePxUQ6JmsbNrgz03u+6SgqYpmBoK/rE+7JffqIw7IEsfoKitLEcRNLGekIBsfwCqiEkew==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+    dependencies:
+      react: 18.2.0
       react-native: 0.72.1(@babel/core@7.20.5)(@babel/preset-env@7.20.2)(react@18.2.0)
     dev: false
 

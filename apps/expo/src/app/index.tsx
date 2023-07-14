@@ -47,7 +47,6 @@ void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE
 const { width } = Dimensions.get("window");
 
 /* 
-    mia AIzaSyAtcwUbA0jjJ6ARXl5_FqIqYcGbTI_XZEE
 
     wtf AIzaSyB-7B_Jh6ZXK9jWiY-VjXbvxhx-4QeXbJU
 

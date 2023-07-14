@@ -17,10 +17,11 @@ import Colors from '../styles/Colors';
 import TuRutaLogo from '../../assets/Logo.png'
 import { type DrawerParamList } from '../app';
 
-const { UIManager } = NativeModules;
+/* const { UIManager } = NativeModules;
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
+ */
 
 export default function SignIn({ navigation }: { navigation?: DrawerNavigationProp<DrawerParamList> }) {
 

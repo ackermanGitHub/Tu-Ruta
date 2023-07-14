@@ -46,7 +46,6 @@ const snapPoints = ["25%", "48%", "75%"];
 
 const origin = { latitude: 23.121715394724493, longitude: -82.38003462553024 };
 const destination = { latitude: 23.1286927367378, longitude: -82.39208780229092 };
-const GOOGLE_MAPS_APIKEY = 'AIzaSyAtcwUbA0jjJ6ARXl5_FqIqYcGbTI_XZEE';
 
 const MapViewComponent = () => {
     const [profileRole, _setProfileRole] = useAtom(profileRoleAtom)
@@ -64,7 +63,7 @@ const MapViewComponent = () => {
     const { colorScheme } = useColorScheme();
     useKeepAwake();
 
-    const { animatedValue: fadeNavAnim, fadeIn: fadeInNav, fadeOut: fadeOutNav, isVisible: _isNavVisible } = useFadeIn({ defaultValue: true })
+    const { animatedValue: fadeNavAnim, fadeIn: _fadeInNav, fadeOut: _fadeOutNav, isVisible: _isNavVisible } = useFadeIn({ defaultValue: true })
     const { animatedValue: pressNavAnim, handlePressIn: pressInNav, handlePressOut: pressOutNav/* , isPressed: isNavPressed */ } = usePressIn()
     const [_isModalVisible, setIsModalVisible] = useState(false);
 
@@ -83,6 +82,7 @@ const MapViewComponent = () => {
             }
         }
     }, [markers, selectedMarkerIndex]);
+    console.log("re-rendered mapview")
 
     const animateToRegion = (region: Region) => {
         mapViewRef.current && mapViewRef.current.animateToRegion(region)
@@ -117,6 +117,7 @@ const MapViewComponent = () => {
         setIsModalVisible(true);
     }
 
+
     return (
         <BottomSheetModalProvider>
 
@@ -124,10 +125,10 @@ const MapViewComponent = () => {
 
                 <MapView
                     onTouchMove={() => {
-                        fadeOutNav()
+                        // _fadeOutNav()
                     }}
                     onTouchEnd={() => {
-                        fadeInNav()
+                        // _fadeInNav()
                     }}
                     className={"w-full h-full"}
                     initialRegion={{
@@ -153,7 +154,10 @@ const MapViewComponent = () => {
                     <MapViewDirections
                         origin={origin}
                         destination={destination}
-                        apikey={GOOGLE_MAPS_APIKEY}
+                        apikey={process.env.EXPO_PUBLIC_GOOGLE_MAPS_APIKEY || ""}
+                        strokeWidth={3}
+                        strokeColor="blue"
+
                     />
                 </MapView>
 
@@ -255,7 +259,7 @@ const MapViewComponent = () => {
                             </View>
                         )}
 
-                        {(userSelected && isSignedIn && isLoaded) || true && (
+                        {(userSelected && isSignedIn && isLoaded) && (
                             <View className='w-full h-full'>
 
                                 <Animated.Image
@@ -280,11 +284,11 @@ const MapViewComponent = () => {
 
                                 <View className={'w-full h-20 justify-between flex-row bg-transparent'}>
                                     <View className='bg-transparent h-full justify-end ml-5'>
-                                        <Text className='font-bold text-lg'>{`${user?.firstName || "Julio"} ${user?.lastName || "López"}`}</Text>
-                                        <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@{`${user?.username || "julydev"}`}</Text>
+                                        <Text className='font-bold text-lg'>{`${user.firstName} ${user.lastName}`}</Text>
+                                        <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@{`${user.username}`}</Text>
                                     </View>
                                     <PressBtn onPress={() => { return }}>
-                                        <View className='h-10 w-32 mt-3 mr-5 justify-center items-center rounded-2xl border-zinc-400 dark:border-zinc-800'>
+                                        <View className=' h-10 w-32 mt-3 mr-5 justify-center items-center rounded-2xl border-zinc-400 dark:border-zinc-800'>
                                             <Text className='font-bold text-base'>Editar Perfil</Text>
                                         </View>
                                     </PressBtn>

@@ -14,9 +14,11 @@ import {
   Dimensions,
   Pressable
 } from "react-native";
-
+/* 
 const { UIManager } = NativeModules;
-
+UIManager.setLayoutAnimationEnabledExperimental &&
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+ */
 /* 
 const config = {
     authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
@@ -24,8 +26,6 @@ const config = {
 }
 */
 
-UIManager.setLayoutAnimationEnabledExperimental &&
-  UIManager.setLayoutAnimationEnabledExperimental(true);
 
 const SignWithOAuth = ({ action = 'sign-in', phoneNumber, password, isReduced = false, isPhoneVerified, SignUp, afterOauthFlow }: { action?: 'sign-in' | 'sign-up', phoneNumber?: string, password?: string, isReduced?: boolean, isPhoneVerified?: boolean, SignUp?: any, afterOauthFlow?: () => void }) => {
 

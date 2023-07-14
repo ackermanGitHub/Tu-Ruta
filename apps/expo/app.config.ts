@@ -49,7 +49,7 @@ const defineConfig = (): ExpoConfig => ({
     },
     config: {
       googleMaps: {
-        apiKey: "AIzaSyAtcwUbA0jjJ6ARXl5_FqIqYcGbTI_XZEE",
+        apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_APIKEY || "",
       }
     },
     package: "com.cubastore.laruta",

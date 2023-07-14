@@ -1,4 +1,8 @@
 import React from "react";
+import {
+  NativeModules,
+  Platform,
+} from 'react-native'
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ClerkProvider/* , SignedIn, SignedOut */ } from "@clerk/clerk-expo";
 import { tokenCache } from "../utils/cache";
@@ -8,6 +12,14 @@ import { StatusBar } from "expo-status-bar";
 import { useFonts } from 'expo-font';
 // import * as NavigationBar from 'expo-navigation-bar';
 // import { useColorScheme } from "nativewind";
+
+const { UIManager } = NativeModules;
+
+if (Platform.OS === 'android') {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+  UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 
 // Keep the splash screen visible while we fetch resources
 void SplashScreen.preventAutoHideAsync();

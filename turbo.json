@@ -54,6 +54,7 @@
         "VERCEL",
         "VERCEL_URL",
         "CI",
-        "PORT"
+        "PORT",
+        "EXPO_PUBLIC_GOOGLE_MAPS_APIKEY"
     ]
 }
