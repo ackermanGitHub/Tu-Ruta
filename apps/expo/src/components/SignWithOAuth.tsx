@@ -38,9 +38,9 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, password, isReduced = 
   const { colorScheme } = useColorScheme()
   const { width, height } = Dimensions.get('window')
 
-  const [btnsWidth, setBtnsWidth] = useState(width > 375 ? 240 : 190)
-  const [containerWidth, setContainerWidth] = useState(width > 375 ? 240 : 190)
-  const [containerHeight, setContainerHeight] = useState(105)
+  const [btnsWidth, setBtnsWidth] = useState(width > 375 ? 240 : 170)
+  const [containerWidth, setContainerWidth] = useState(width > 375 ? 240 : 170)
+  const [containerHeight, setContainerHeight] = useState(width > 375 ? 105 : 87)
 
   useEffect(() => {
     void WebBrowser.warmUpAsync();
@@ -56,9 +56,9 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, password, isReduced = 
       setContainerWidth(width > 375 ? 120 : 110)
       setContainerHeight(width > 375 ? 50 : 40)
     } else {
-      setBtnsWidth(width > 375 ? 240 : 190)
-      setContainerWidth(width > 375 ? 240 : 190)
-      setContainerHeight(width > 375 ? 105 : 95)
+      setBtnsWidth(width > 375 ? 240 : 170)
+      setContainerWidth(width > 375 ? 240 : 170)
+      setContainerHeight(width > 375 ? 105 : 87)
     }
   }, [isReduced]);
 
@@ -105,7 +105,7 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, password, isReduced = 
 
   return (
     <View
-      className="relative my-4 w-1/2"
+      className="relative my-4 max-[367px]:my-2 w-1/2"
       style={{
         height: containerHeight,
         width: containerWidth,
@@ -120,7 +120,7 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, password, isReduced = 
       >
         <PressBtn onPress={googleSignHandler}>
           <View
-            className={'h-12 max-[367px]:h-10 flex-row border border-solid border-gray-500 mb-2 dark:border-none dark:bg-white rounded-3xl justify-center items-center'}
+            className={'h-12 max-[367px]:h-10 mb-2 max-[367px]:mb-1 flex-row border border-solid border-gray-500 dark:border-none dark:bg-white rounded-3xl justify-center items-center'}
             style={{
               width: btnsWidth,
 

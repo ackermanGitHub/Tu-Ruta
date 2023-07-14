@@ -3,7 +3,8 @@ import {
     Dimensions,
     ActivityIndicator,
     Pressable,
-    Animated
+    Animated,
+    Keyboard
 } from "react-native";
 
 import {
@@ -122,6 +123,7 @@ export default function Home() {
                                 }}
                                 onPress={() => {
                                     navigation.openDrawer();
+                                    Keyboard.dismiss()
                                 }}
                                 className={'p-3 rounded-full bg-transparent'}
                             >
