@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import {
-    NativeModules,
+    /* Platform,
+    TouchableWithoutFeedback, */
     LayoutAnimation,
     Pressable,
-    /* TouchableWithoutFeedback, */
-    Platform
 } from 'react-native';
 
-import { Text, View } from '../styles/Themed';
+import { Text/* , View */ } from '../styles/Themed';
 import { Feather } from '@expo/vector-icons';
 import Colors from '../styles/Colors';
 import { useColorScheme } from 'nativewind';

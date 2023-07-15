@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import {
-    NativeModules,
+    /* NativeModules,
     Platform,
+    TouchableWithoutFeedback, */
     LayoutAnimation,
     Pressable,
-    /* TouchableWithoutFeedback, */
 } from 'react-native';
-import { BlurView } from "@react-native-community/blur";
 
-import { Text, View } from '../styles/Themed';
+import { Text/* , View */ } from '../styles/Themed';
 import { Feather } from '@expo/vector-icons';
 import Colors from '../styles/Colors';
 import { useColorScheme } from 'nativewind';

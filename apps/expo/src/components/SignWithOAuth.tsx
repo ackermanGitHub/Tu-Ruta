@@ -9,22 +9,15 @@ import { PressBtn } from "../styles/PressBtn";
 import { AntDesign } from '@expo/vector-icons';
 import { useColorScheme } from "nativewind";
 import {
-  NativeModules,
   LayoutAnimation,
   Dimensions,
-  Pressable
+  Platform
 } from "react-native";
-/* 
-const { UIManager } = NativeModules;
-UIManager.setLayoutAnimationEnabledExperimental &&
-  UIManager.setLayoutAnimationEnabledExperimental(true);
- */
-/* 
-const config = {
+
+/* const config = {
     authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
     clientId: '795271227886-uq0n8g7p4j1h2i7h7d7n1h4hq7uj6q1.apps.googleusercontent.com',
-}
-*/
+} */
 
 
 const SignWithOAuth = ({ action = 'sign-in', phoneNumber, password, isReduced = false, isPhoneVerified, SignUp, afterOauthFlow }: { action?: 'sign-in' | 'sign-up', phoneNumber?: string, password?: string, isReduced?: boolean, isPhoneVerified?: boolean, SignUp?: any, afterOauthFlow?: () => void }) => {
@@ -40,7 +33,7 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, password, isReduced = 
 
   const [btnsWidth, setBtnsWidth] = useState(width > 375 ? 240 : 170)
   const [containerWidth, setContainerWidth] = useState(width > 375 ? 240 : 170)
-  const [containerHeight, setContainerHeight] = useState(width > 375 ? 105 : 87)
+  const [containerHeight, setContainerHeight] = useState(Platform.OS === 'ios' ? (width > 375 ? 105 : 87) : 45)
 
   useEffect(() => {
     void WebBrowser.warmUpAsync();
@@ -50,15 +43,17 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, password, isReduced = 
   }, []);
 
   useEffect(() => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.linear);
-    if (isReduced) {
-      setBtnsWidth(width > 375 ? 48 : 40)
-      setContainerWidth(width > 375 ? 120 : 110)
-      setContainerHeight(width > 375 ? 50 : 40)
-    } else {
-      setBtnsWidth(width > 375 ? 240 : 170)
-      setContainerWidth(width > 375 ? 240 : 170)
-      setContainerHeight(width > 375 ? 105 : 87)
+    if (Platform.OS === 'ios' && false) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.linear);
+      if (isReduced) {
+        setBtnsWidth(width > 375 ? 48 : 40)
+        setContainerWidth(width > 375 ? 120 : 110)
+        setContainerHeight(width > 375 ? 50 : 40)
+      } else {
+        setBtnsWidth(width > 375 ? 240 : 170)
+        setContainerWidth(width > 375 ? 240 : 170)
+        setContainerHeight(width > 375 ? 105 : 87)
+      }
     }
   }, [isReduced]);
 
@@ -113,7 +108,7 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, password, isReduced = 
       }}
     >
 
-      <View
+      {Platform.OS !== 'ios' && <View
         className='absolute top-0 left-0'
         style={{
           top: 0
@@ -124,7 +119,6 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, password, isReduced = 
             className={'h-12 max-[367px]:h-10 mb-2 max-[367px]:mb-1 flex-row border border-solid border-gray-500 dark:border-none dark:bg-white rounded-3xl justify-center items-center'}
             style={{
               width: btnsWidth,
-
             }}
           >
 
@@ -149,32 +143,33 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, password, isReduced = 
             </Text>}
           </View>
         </PressBtn>
-      </View>
-
-      <View
-        className="absolute bottom-0 right-0"
-        style={{
-          bottom: 0
-        }}
-      >
-        <PressBtn onPress={() => {
-          console.log(JSON.stringify({ phoneNumber, SignUp }, null, 2));
-        }}>
-          <View
-            className={'h-12 max-[367px]:h-10 flex-row bg-black dark:border-slate-600 border rounded-3xl justify-center items-center'}
-            style={{
-              width: btnsWidth,
-            }}
-          >
-            <AntDesign name="apple1" size={width <= 367 ? 20 : 24} color={"white"} />
-            {btnsWidth > 50 && <Text
-              className='text-white ml-3 font-medium text-base max-[367px]:text-sm'
+      </View>}
+      {Platform.OS === 'ios' &&
+        <View
+          className="absolute bottom-0 right-0"
+          style={{
+            bottom: 0
+          }}
+        >
+          <PressBtn onPress={() => {
+            console.log(JSON.stringify({ phoneNumber, SignUp }, null, 2));
+          }}>
+            <View
+              className={'h-12 max-[367px]:h-10 flex-row bg-black dark:border-slate-600 border rounded-3xl justify-center items-center'}
+              style={{
+                width: btnsWidth,
+              }}
             >
-              Usar Apple
-            </Text>}
-          </View>
-        </PressBtn>
-      </View>
+              <AntDesign name="apple1" size={width <= 367 ? 20 : 24} color={"white"} />
+              {btnsWidth > 50 && <Text
+                className='text-white ml-3 font-medium text-base max-[367px]:text-sm'
+              >
+                Usar Apple
+              </Text>}
+            </View>
+          </PressBtn>
+        </View>
+      }
 
     </View>
   );

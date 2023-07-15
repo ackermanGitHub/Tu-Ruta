@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import {
-    NativeModules, LayoutAnimation, TextInput, ActivityIndicator, KeyboardAvoidingView,
+    LayoutAnimation, TextInput, ActivityIndicator, KeyboardAvoidingView,
 } from 'react-native';
 import { View, Text } from '../styles/Themed';
 import { useSignIn } from "@clerk/clerk-expo";
@@ -16,12 +16,6 @@ import Colors from '../styles/Colors';
 // @ts-ignore
 import TuRutaLogo from '../../assets/Logo.png'
 import { type DrawerParamList } from '../app';
-
-/* const { UIManager } = NativeModules;
-
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
- */
 
 export default function SignIn({ navigation }: { navigation?: DrawerNavigationProp<DrawerParamList> }) {
 

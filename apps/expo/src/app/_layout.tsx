@@ -12,13 +12,13 @@ import { StatusBar } from "expo-status-bar";
 import { useFonts } from 'expo-font';
 // import * as NavigationBar from 'expo-navigation-bar';
 // import { useColorScheme } from "nativewind";
-import { useUser } from '@clerk/clerk-expo';
+// import { useUser } from '@clerk/clerk-expo';
 
-import { useAtom, atom } from 'jotai'
-import { atomWithStorage, createJSONStorage } from 'jotai/utils'
+// import { useAtom, atom } from 'jotai'
+// import { atomWithStorage, createJSONStorage } from 'jotai/utils'
 
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import NetInfo from '@react-native-community/netinfo';
+// import AsyncStorage from '@react-native-async-storage/async-storage'
+// import NetInfo from '@react-native-community/netinfo';
 
 const { UIManager } = NativeModules;
 
@@ -26,9 +26,6 @@ if (Platform.OS === 'android') {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
   UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
 }
-
-const storedProfileRole = createJSONStorage<'taxi' | 'client'>(() => AsyncStorage)
-export const profileRoleAtom = atomWithStorage<'taxi' | 'client'>('userRole', "client", storedProfileRole)
 
 // Keep the splash screen visible while we fetch resources
 void SplashScreen.preventAutoHideAsync();

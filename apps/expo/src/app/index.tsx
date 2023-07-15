@@ -6,7 +6,7 @@ import {
     Animated,
     Keyboard
 } from "react-native";
-
+// import { useRef } from "react";
 import {
     DrawerContentScrollView,
     DrawerItem,
@@ -38,7 +38,6 @@ import SignUp from "../components/Sign-up";
 import NetInfo from '@react-native-community/netinfo';
 
 import { useAtom } from 'jotai'
-// import { useRef } from "react";
 import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
 import { signMethodAtom } from "../components/Sign-up";
 
@@ -230,7 +229,7 @@ export default function Home() {
 
                             )
 
-                        }} label={'Sign-In'} onPress={() => { console.log("Sign-In") }} />
+                        }} label={'Sign-In'} onPress={() => { console.log(signMethod) }} />
 
                         <DrawerItem style={{
                             width: '100%',

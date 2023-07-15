@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import {
-    NativeModules,
-    LayoutAnimation, TextInput/* , Pressable */, useColorScheme, ActivityIndicator, Platform
+    /* NativeModules,
+    Pressable, */
+    LayoutAnimation,
+    TextInput,
+    useColorScheme,
+    ActivityIndicator
 } from 'react-native';
 import { View, Text } from '../styles/Themed';
 import { useSignUp } from "@clerk/clerk-expo";
@@ -16,15 +20,15 @@ import { Image } from 'expo-image';
 import TuRutaLogo from '../../assets/Logo.png'
 import { type DrawerParamList } from '../app';
 import Colors from '../styles/Colors';
-const { UIManager } = NativeModules;
 
-import { useUser } from '@clerk/clerk-expo';
+// const { UIManager } = NativeModules;
+// import { useUser } from '@clerk/clerk-expo';
 
-import { useAtom, atom } from 'jotai'
+import { useAtom/* , atom  */ } from 'jotai'
 import { atomWithStorage, createJSONStorage } from 'jotai/utils'
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import NetInfo from '@react-native-community/netinfo';
+// import NetInfo from '@react-native-community/netinfo';
 
 /* 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -98,7 +102,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
         return true;
     }
 
-    function isEmail(value: string): boolean {
+    function isValidEmail(value: string): boolean {
         // Check if the value ends with "gmail.com"
         if (!value.endsWith("gmail.com")) {
             return false;
@@ -132,10 +136,10 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
 
         try {
             setIsLoading(true);
-            const isValid = isValidPhone(phoneNumber.trim())
+            const isPhoneValid = isValidPhone(phoneNumber.trim())
 
-            if (!isValid) {
-                return
+            if (!isPhoneValid) {
+                throw new Error("phone number is invalid")
             }
 
             await signUp.update({
@@ -144,6 +148,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
             await signUp.preparePhoneNumberVerification({ strategy: "phone_code" });
             console.log("Código de verificación enviado a: +53 " + phoneNumber)
 
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
             setIsLoading(false);
             setPendingVerification(true);
 
@@ -169,8 +174,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
 
             await setActive({ session: completeVerifyPhone.createdSessionId })
 
-            await setSignMethod(oauthCompleted ? "password" : "oauth")
-
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
             setIsPhoneVerified(true)
             setPendingVerification(false);
             setIsLoading(false);
@@ -191,6 +195,12 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
         try {
             setIsLoading(true);
 
+            const isEmailValid = isValidEmail(email.trim())
+
+            if (!isEmailValid) {
+                throw new Error("email is invalid")
+            }
+
             await signUp.create({
                 emailAddress: email.trim(),
                 password: password.trim(),
@@ -205,6 +215,8 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
             console.error(JSON.stringify(err, null, 2));
             setIsLoading(false);
         }
+
+        await setSignMethod("password")
     };
 
     if (signMethod) {
@@ -237,7 +249,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                     adjustsFontSizeToFit
                     className='text-center'
                 >
-                    Selecciona el método que desea crear cuenta
+                    Seleccione el método para crear su cuenta
                 </Text>
                 <Image
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -341,7 +353,9 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
             {!oauthCompleted && !isInfoProvided && (
                 <>
                     <SignWithOAuth afterOauthFlow={() => {
+                        LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
                         setOauthCompleted(true)
+                        setSignMethod("oauth")
                     }} action={'sign-up'} phoneNumber={phoneNumber} password={password} isReduced={isReduced} isPhoneVerified={isPhoneVerified} SignUp={signUp} />
                     <View className={'w-4/5 max-[367px]:w-2/3 mb-4 max-[367px]:mb-2 justify-center items-center relative'}>
                         <TextInput
