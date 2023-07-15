@@ -72,6 +72,7 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, password, isReduced = 
       } else {
 
         if (action === 'sign-in') {
+          console.log(JSON.stringify(signIn, null, 2))
           signIn && void setActive?.({ session: signIn.createdSessionId });
         }
         console.log("afterOauthFlow")

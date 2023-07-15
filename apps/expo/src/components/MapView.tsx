@@ -52,7 +52,7 @@ const MapViewComponent = () => {
     const [profileState, setProfileState] = useAtom(profileStateAtom)
 
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
-    const [userSelected, setUserSelected] = useState(false);
+    const [userSelected, setUserSelected] = useState(true);
 
     const _userMarkerRef = useRef<MapMarker>(null);
     const mapViewRef = useRef<MapView>(null);

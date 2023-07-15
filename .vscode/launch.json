@@ -6,9 +6,9 @@
   "configurations": [
     {
       "name": "Debug Android",
-      "cwd": "${workspaceFolder}",
+      "cwd": "${workspaceFolder}/apps/expo",
       "type": "reactnative",
-      "request": "launch",
+      "request": "attach",
       "platform": "android"
     }
   ]

@@ -40,6 +40,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { useAtom } from 'jotai'
 // import { useRef } from "react";
 import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
+import { signMethodAtom } from "../components/Sign-up";
 
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
@@ -83,6 +84,7 @@ export default function Home() {
 
     const [profileRole, setProfileRole] = useAtom(profileRoleAtom)
     const [profileState, _setProfileState] = useAtom(profileStateAtom)
+    const [signMethod, _setSignMethod] = useAtom(signMethodAtom)
 
     const { colorScheme } = useColorScheme();
 
@@ -179,9 +181,10 @@ export default function Home() {
                                             color={Colors[colorScheme ?? 'light'].text}
                                         />
                                         <PressBtn onPress={() => {
-                                            navigation.navigate('Sign-In')
+                                            console.log(signMethod)
+                                            navigation.navigate(signMethod ? "Sign-In" : "Sign-Up")
                                         }} className={`w-[60px] max-w-[120px] ml-5 bg-slate-500 dark:bg-slate-700 rounded h-8 justify-center items-center`} >
-                                            <Text className={`text-white`}>Sign In</Text>
+                                            <Text className={`text-white`}>{signMethod ? "Sign In" : "Sign Up"}</Text>
                                         </PressBtn>
                                     </View>
                                 )

@@ -43,21 +43,21 @@ const LayoutDropdown = () => {
     };
 
     const handleCloseDropdown = () => {
-        /* LayoutAnimation.configureNext({
+        LayoutAnimation.configureNext({
             duration: 200,
             update: {
-                type: 'linear',
+                type: 'easeOut',
                 property: 'opacity',
             },
             create: {
-                type: 'linear',
+                type: 'easeOut',
                 property: 'opacity',
             },
             delete: {
-                type: 'linear',
+                type: 'easeOut',
                 property: 'opacity',
             },
-        }) */
+        })
         setWidth(32)
         setHeight(32)
         setIsOpen(false)

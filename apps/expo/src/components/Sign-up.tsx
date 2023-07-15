@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     NativeModules,
-    LayoutAnimation, TextInput/* , Pressable */, useColorScheme, ActivityIndicator
+    LayoutAnimation, TextInput/* , Pressable */, useColorScheme, ActivityIndicator, Platform
 } from 'react-native';
 import { View, Text } from '../styles/Themed';
 import { useSignUp } from "@clerk/clerk-expo";
@@ -16,12 +16,24 @@ import { Image } from 'expo-image';
 import TuRutaLogo from '../../assets/Logo.png'
 import { type DrawerParamList } from '../app';
 import Colors from '../styles/Colors';
-/* 
 const { UIManager } = NativeModules;
 
+import { useUser } from '@clerk/clerk-expo';
+
+import { useAtom, atom } from 'jotai'
+import { atomWithStorage, createJSONStorage } from 'jotai/utils'
+
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import NetInfo from '@react-native-community/netinfo';
+
+/* 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
  */
+
+const storedSignMethod = createJSONStorage<'oauth' | 'password' | undefined>(() => AsyncStorage)
+export const signMethodAtom = atomWithStorage<'oauth' | 'password' | undefined>('signMethod', undefined, storedSignMethod)
+
 export default function SignUp({ navigation }: { navigation?: DrawerNavigationProp<DrawerParamList> }) {
 
     const { isLoaded, signUp, setActive } = useSignUp();
@@ -54,6 +66,8 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
 
     const [isReduced, setIsReduced] = useState(false)
 
+    const [signMethod, setSignMethod] = useAtom(signMethodAtom);
+
     const reduceLogo = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setIsReduced(true)
@@ -75,12 +89,39 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
         // Check if all characters are digits
         for (let i = 0; i < phoneNumber.length; i++) {
             if (isNaN(Number(phoneNumber.charAt(i)))) {
-                setPhoneError('Todos los caractéres deben ser números 🤌')
+                setPhoneError('Todos los caractéres deben ser números 🤌, sobra el: "' + phoneNumber.charAt(i) + '"')
                 return false;
             }
         }
 
         setPhoneError('')
+        return true;
+    }
+
+    function isEmail(value: string): boolean {
+        // Check if the value ends with "gmail.com"
+        if (!value.endsWith("gmail.com")) {
+            return false;
+        }
+
+        // Check if there is at least one character before "@"
+        const atIndex = value.indexOf("@");
+        if (atIndex <= 0) {
+            return false;
+        }
+
+        // Check if there is at least one character between "@" and "."
+        const dotIndex = value.indexOf(".");
+        if (dotIndex - atIndex <= 1) {
+            return false;
+        }
+
+        // Check if there is at least one character after "."
+        if (dotIndex === value.length - 1) {
+            return false;
+        }
+
+        // If all checks pass, return true
         return true;
     }
 
@@ -101,6 +142,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                 phoneNumber: '53' + phoneNumber.trim(),
             })
             await signUp.preparePhoneNumberVerification({ strategy: "phone_code" });
+            console.log("Código de verificación enviado a: +53 " + phoneNumber)
 
             setIsLoading(false);
             setPendingVerification(true);
@@ -123,15 +165,17 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
             const completeVerifyPhone = await signUp.attemptPhoneNumberVerification({
                 code,
             });
+            console.log("Código de verificación verificado")
 
             await setActive({ session: completeVerifyPhone.createdSessionId })
 
-            navigation?.navigate('Map');
+            await setSignMethod(oauthCompleted ? "password" : "oauth")
 
             setIsPhoneVerified(true)
             setPendingVerification(false);
             setIsLoading(false);
 
+            navigation?.navigate('Map');
         } catch (err) {
             console.error(JSON.stringify(err, null, 2));
             setIsLoading(false);
@@ -163,6 +207,14 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
         }
     };
 
+    if (signMethod) {
+        return (
+            <>
+
+            </>
+        )
+    }
+
     return (
         <View className={'w-full h-full justify-center items-center'}>
             <Stack.Screen options={{
@@ -179,7 +231,14 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                     numberOfLines={2}
                     adjustsFontSizeToFit
                     className='font-bold text-3xl text-center max-[367px]:text-2xl'
-                >Bienvenido Otra Vez</Text>
+                >Bienvenido</Text>
+                <Text
+                    numberOfLines={2}
+                    adjustsFontSizeToFit
+                    className='text-center'
+                >
+                    Selecciona el método que desea crear cuenta
+                </Text>
                 <Image
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     source={TuRutaLogo}
@@ -190,8 +249,8 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
 
             {(oauthCompleted || isInfoProvided) && !pendingVerification && !isPhoneVerified && (
                 <>
-                    <View className={'relative w-4/5 max-[367px]:w-2/3 my-4 max-[367px]:my-2 flex-row justify-center items-center'}>
-                        <View className='w-4/5 flex-row justify-center items-center'>
+                    <View className={'w-4/5 max-[367px]:w-2/3 my-4 max-[367px]:my-2 flex-row justify-center items-center'}>
+                        <View className='relative w-4/5 flex-row justify-center items-center'>
                             <View className='h-12 max-[367px]:h-10 w-[20%] border border-r-0 rounded-l border-gray-300 dark:border-gray-600 dark:bg-transparent justify-center items-center'>
                                 <Text className='text-gray-500 dark:text-slate-500'>+53</Text>
                             </View>
@@ -208,20 +267,20 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                                     reduceLogo()
                                 }}
                             />
+                            {
+                                phoneError &&
+                                <View className='absolute right-2 my-auto'>
+                                    <MaterialIcons
+                                        name='error'
+                                        size={24}
+                                        color={Colors[colorScheme ?? 'light'].text}
+                                    />
+                                </View>
+                            }
                         </View>
-                        {
-                            phoneError &&
-                            <View className='absolute right-2 my-auto'>
-                                <MaterialIcons
-                                    name='error'
-                                    size={24}
-                                    color={Colors[colorScheme ?? 'light'].text}
-                                />
-                            </View>
-                        }
                     </View>
 
-                    <PressBtn onPress={() => { void handleSendCode() }} className={'w-[200px] max-[367px]:w-[180px] max-w-[280px] bg-[#FCCB6F] mb-2 dark:bg-white rounded-3xl h-12 max-[367px]:h-8 flex-row justify-center items-center'} >
+                    <PressBtn onPress={() => { handleSendCode() }} className={'w-[200px] max-[367px]:w-[180px] max-w-[280px] bg-[#FCCB6F] mb-2 dark:bg-white rounded-3xl h-12 max-[367px]:h-8 flex-row justify-center items-center'} >
                         <Text darkColor="black" className={'text-white dark:text-black font-bold text-lg max-[367px]:text-base mr-3'}>Continuar</Text>
                         {isLoading && <ActivityIndicator
                             size={'small'}
@@ -235,6 +294,17 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
             {pendingVerification && (
                 <>
                     <View className='w-4/5 max-[367px]:w-2/3 mb-4 max-[367px]:mb-2 justify-center items-center relative'>
+                        <View className='w-full justify-center flex-row items-center'>
+                            <Text numberOfLines={2}
+                                adjustsFontSizeToFit className='my-4 mr-4'>No Te Ha Llegado? Intenta de nuevo</Text>
+                            <PressBtn onPress={() => { handleSendCode() }}>
+                                <ActivityIndicator
+                                    size={'large'}
+                                    animating
+                                    color={colorScheme === 'light' ? 'black' : 'white'}
+                                />
+                            </PressBtn>
+                        </View>
                         <TextInput
                             className={'h-12 max-[367px]:h-10 w-4/5 px-4 border rounded border-gray-300 dark:border-gray-800 dark:bg-transparent text-gray-500 dark:text-slate-500'}
                             placeholderTextColor={colorScheme === 'dark' ? "rgb(107 114 128)" : "rgb(100 116 139)"}
@@ -257,7 +327,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                             </View>
                         }
                     </View>
-                    <PressBtn onPress={() => { void handleVerifyPhone() }} className={'w-[200px] max-[367px]:w-[180px] max-w-[280px] bg-[#FCCB6F] mb-2 dark:bg-white rounded-3xl h-12 max-[367px]:h-8 flex-row justify-center items-center'} >
+                    <PressBtn onPress={() => { handleVerifyPhone() }} className={'w-[200px] max-[367px]:w-[180px] max-w-[280px] bg-[#FCCB6F] mb-2 dark:bg-white rounded-3xl h-12 max-[367px]:h-8 flex-row justify-center items-center'} >
                         <Text darkColor="black" className={'text-white dark:text-black font-bold text-lg max-[367px]:text-base mr-3'}>Verificar</Text>
                         {isLoading && <ActivityIndicator
                             size={'small'}
