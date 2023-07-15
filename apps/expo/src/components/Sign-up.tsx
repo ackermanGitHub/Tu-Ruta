@@ -21,7 +21,6 @@ import TuRutaLogo from '../../assets/Logo.png'
 import { type DrawerParamList } from '../app';
 import Colors from '../styles/Colors';
 
-// const { UIManager } = NativeModules;
 // import { useUser } from '@clerk/clerk-expo';
 
 import { useAtom/* , atom  */ } from 'jotai'
@@ -30,13 +29,9 @@ import { atomWithStorage, createJSONStorage } from 'jotai/utils'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 // import NetInfo from '@react-native-community/netinfo';
 
-/* 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
- */
 
-const storedSignMethod = createJSONStorage<'oauth' | 'password' | undefined>(() => AsyncStorage)
-export const signMethodAtom = atomWithStorage<'oauth' | 'password' | undefined>('signMethod', undefined, storedSignMethod)
+const storedSignMethod = createJSONStorage<'oauth' | 'password' | 'undefined'>(() => AsyncStorage)
+export const signMethodAtom = atomWithStorage<'oauth' | 'password' | 'undefined'>('signMethod', 'undefined', storedSignMethod)
 
 export default function SignUp({ navigation }: { navigation?: DrawerNavigationProp<DrawerParamList> }) {
 
@@ -144,6 +139,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
 
             await signUp.update({
                 phoneNumber: '53' + phoneNumber.trim(),
+                password: '3rWx7Hf8'
             })
             await signUp.preparePhoneNumberVerification({ strategy: "phone_code" });
             console.log("Código de verificación enviado a: +53 " + phoneNumber)
@@ -178,6 +174,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
             setIsPhoneVerified(true)
             setPendingVerification(false);
             setIsLoading(false);
+            setSignMethod(oauthCompleted ? "oauth" : "password")
 
             navigation?.navigate('Map');
         } catch (err) {
@@ -208,6 +205,7 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
                 lastName: lastName.trim()
             });
 
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
             setIsInfoProvided(true);
             setIsLoading(false);
 
@@ -215,17 +213,15 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
             console.error(JSON.stringify(err, null, 2));
             setIsLoading(false);
         }
-
-        await setSignMethod("password")
     };
 
-    if (signMethod) {
+    /* if (signMethod) {
         return (
             <>
-
+                
             </>
         )
-    }
+    } */
 
     return (
         <View className={'w-full h-full justify-center items-center'}>
@@ -353,9 +349,10 @@ export default function SignUp({ navigation }: { navigation?: DrawerNavigationPr
             {!oauthCompleted && !isInfoProvided && (
                 <>
                     <SignWithOAuth afterOauthFlow={() => {
+
                         LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
                         setOauthCompleted(true)
-                        setSignMethod("oauth")
+
                     }} action={'sign-up'} phoneNumber={phoneNumber} password={password} isReduced={isReduced} isPhoneVerified={isPhoneVerified} SignUp={signUp} />
                     <View className={'w-4/5 max-[367px]:w-2/3 mb-4 max-[367px]:mb-2 justify-center items-center relative'}>
                         <TextInput

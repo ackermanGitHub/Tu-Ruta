@@ -17,6 +17,9 @@ import Colors from '../styles/Colors';
 import TuRutaLogo from '../../assets/Logo.png'
 import { type DrawerParamList } from '../app';
 
+import { useAtom/* , atom  */ } from 'jotai'
+import { signMethodAtom } from './Sign-up';
+
 export default function SignIn({ navigation }: { navigation?: DrawerNavigationProp<DrawerParamList> }) {
 
     const { signIn, setActive, isLoaded } = useSignIn();
@@ -33,6 +36,8 @@ export default function SignIn({ navigation }: { navigation?: DrawerNavigationPr
     const [isLoading, setIsLoading] = useState(false);
 
     const [isReduced, setIsReduced] = useState(false)
+
+    const [signMethod, _setSignMethod] = useAtom(signMethodAtom);
 
     const reduceLogo = () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

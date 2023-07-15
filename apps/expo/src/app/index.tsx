@@ -4,9 +4,9 @@ import {
     ActivityIndicator,
     Pressable,
     Animated,
-    Keyboard
+    Keyboard,
 } from "react-native";
-// import { useRef } from "react";
+
 import {
     DrawerContentScrollView,
     DrawerItem,
@@ -41,7 +41,6 @@ import { useAtom } from 'jotai'
 import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
 import { signMethodAtom } from "../components/Sign-up";
 
-
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
 const { width } = Dimensions.get("window");
@@ -60,7 +59,6 @@ export type DrawerParamList = {
     "Sign-In": undefined;
     "Sign-Up": undefined;
     "Map": undefined;
-    "Stack": undefined;
     "History": undefined;
     "Config": undefined;
     "Network": undefined;
@@ -87,7 +85,7 @@ export default function Home() {
 
     const { colorScheme } = useColorScheme();
 
-    const { animatedValue: pressMenuAnim, handlePressIn: pressInMenu, handlePressOut: pressOutMenu/* , isPressed: isMenuPressed */ } = usePressIn()
+    const { animatedValue: pressMenuAnim, handlePressIn: pressInMenu, handlePressOut: pressOutMenu, isPressed: _isMenuPressed } = usePressIn()
 
     return (
         <Drawer.Navigator
@@ -181,9 +179,9 @@ export default function Home() {
                                         />
                                         <PressBtn onPress={() => {
                                             console.log(signMethod)
-                                            navigation.navigate(signMethod ? "Sign-In" : "Sign-Up")
+                                            navigation.navigate(signMethod !== 'undefined' ? "Sign-In" : "Sign-Up")
                                         }} className={`w-[60px] max-w-[120px] ml-5 bg-slate-500 dark:bg-slate-700 rounded h-8 justify-center items-center`} >
-                                            <Text className={`text-white`}>{signMethod ? "Sign In" : "Sign Up"}</Text>
+                                            <Text className={`text-white`}>{signMethod !== 'undefined' ? "Sign In" : "Sign Up"}</Text>
                                         </PressBtn>
                                     </View>
                                 )
@@ -416,7 +414,7 @@ export default function Home() {
                                     />
                                 </PressBtn>
                             </View>
-                        )} label={'Social Networks'} onPress={() => { console.log('Social Networks') }} />
+                        )} label={'Social Networks'} onPress={() => { _setSignMethod('undefined') }} />
 
                     </DrawerContentScrollView>
                 )

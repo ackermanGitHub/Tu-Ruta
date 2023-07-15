@@ -35,6 +35,7 @@ import UserMarker from '../markers/UserMarker';
 import CarMarker from '../markers/CarMarker';
 import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
 import { useAtom } from 'jotai';
+import { signMethodAtom } from './Sign-up';
 import LayoutDropdown from './LayoutDropdown';
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
@@ -50,6 +51,7 @@ const destination = { latitude: 23.1286927367378, longitude: -82.39208780229092 
 const MapViewComponent = () => {
     const [profileRole, _setProfileRole] = useAtom(profileRoleAtom)
     const [profileState, setProfileState] = useAtom(profileStateAtom)
+    const [signMethod, setSignMethod] = useAtom(signMethodAtom)
 
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const [userSelected, setUserSelected] = useState(true);

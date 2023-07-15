@@ -70,11 +70,15 @@ const SignWithOAuth = ({ action = 'sign-in', phoneNumber, password, isReduced = 
           console.log(JSON.stringify(signIn, null, 2))
           signIn && void setActive?.({ session: signIn.createdSessionId });
         }
-        console.log("afterOauthFlow")
+
+        if (action === 'sign-up') {
+          console.log(JSON.stringify(signUp, null, 2))
+          signUp && void setActive?.({ session: signUp.createdSessionId });
+        }
 
       }
-
       afterOauthFlow && afterOauthFlow()
+      console.log("afterOauthFlow")
 
     } catch (err) {
       console.log(JSON.stringify(err, null, 2));

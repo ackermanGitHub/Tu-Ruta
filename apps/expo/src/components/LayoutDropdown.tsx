@@ -11,11 +11,15 @@ import { Feather } from '@expo/vector-icons';
 import Colors from '../styles/Colors';
 import { useColorScheme } from 'nativewind';
 import { useAuth } from '@clerk/clerk-expo';
+import { useAtom } from 'jotai';
+import { signMethodAtom } from './Sign-up';
 
 const LayoutDropdown = () => {
     const [isOpen, setIsOpen] = React.useState(false);
     const { colorScheme } = useColorScheme();
     const { isLoaded, signOut } = useAuth();
+
+    const [signMethod, setSignMethod] = useAtom(signMethodAtom)
 
     const [width, setWidth] = useState(32);
     const [height, setHeight] = useState(32);
@@ -94,7 +98,7 @@ const LayoutDropdown = () => {
                         </Pressable>
                         <Pressable onPress={() => {
                             console.log('closing session')
-                            if (isLoaded) {
+                            if (isLoaded && signMethod !== 'undefined') {
                                 void signOut()
                             }
                         }}>
