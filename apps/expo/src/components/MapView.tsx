@@ -4,7 +4,9 @@ import {
     Pressable,
     Animated,
     StatusBar,
-    Switch
+    Switch,
+    Platform,
+    Dimensions
 } from "react-native";
 import MapViewDirections from 'react-native-maps-directions';
 import {
@@ -13,13 +15,13 @@ import {
 } from "@gorhom/bottom-sheet";
 
 import { NightMap } from '../styles/NightMap';
-import MapView, { type MapMarker, type Region, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { type MapMarker, type Region, PROVIDER_GOOGLE, Polyline, type LatLng, Marker, AnimatedRegion, MarkerAnimated, } from 'react-native-maps';
 
 import { type MarkerData } from '../constants/Markers';
 import useMapConnection from '../hooks/useMapConnection';
 
 import { View, Text } from '../styles/Themed';
-import { /* FontAwesome,  */MaterialIcons/* , Feather */, MaterialCommunityIcons } from '@expo/vector-icons';
+import { /*Feather, FontAwesome, */MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Colors from '../styles/Colors';
 // import NetInfo from '@react-native-community/netinfo';
 
@@ -34,9 +36,12 @@ import { PressBtn } from '../styles/PressBtn';
 import UserMarker from '../markers/UserMarker';
 import CarMarker from '../markers/CarMarker';
 import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
-import { useAtom } from 'jotai';
+import { useAtom, } from 'jotai';
 import { signMethodAtom } from './Sign-up';
 import LayoutDropdown from './LayoutDropdown';
+
+import { atomWithStorage, createJSONStorage, } from 'jotai/utils';
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
@@ -48,10 +53,18 @@ const snapPoints = ["25%", "48%", "75%"];
 const origin = { latitude: 23.121715394724493, longitude: -82.38003462553024 };
 const destination = { latitude: 23.1286927367378, longitude: -82.39208780229092 };
 
+const storedIsRouteAnimating = createJSONStorage<'true' | 'false' | 'unknown'>(() => AsyncStorage)
+export const isRouteAnimatingAtom = atomWithStorage<'true' | 'false' | 'unknown'>('isRouteAnimating', "false", storedIsRouteAnimating)
+
+
+const storedCurrentRouteCount = createJSONStorage<number>(() => AsyncStorage)
+export const currentRouteCountAtom = atomWithStorage<number>('currentRouteCountAtom', 0, storedCurrentRouteCount)
+
 const MapViewComponent = () => {
     const [profileRole, _setProfileRole] = useAtom(profileRoleAtom)
     const [profileState, setProfileState] = useAtom(profileStateAtom)
     const [signMethod, setSignMethod] = useAtom(signMethodAtom)
+    const [isRouteAnimating, setIsRouteAnimating] = useAtom(isRouteAnimatingAtom)
 
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const [userSelected, setUserSelected] = useState(true);
@@ -71,6 +84,64 @@ const MapViewComponent = () => {
 
     const { markers, location, heading } = useMapConnection();
 
+
+    const { width, height } = Dimensions.get('window');
+    const ASPECT_RATIO = width / height;
+    const LATITUDE_DELTA = 0.003;
+    const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
+
+    const [animRoute, setAnimRoute] = useState<LatLng[]>([])
+
+    const animatedMarkerRef = useRef();
+
+    const [currentRouteCount, setCurrentRouteCount] = useAtom(currentRouteCountAtom)
+
+    const [animatedMarkerCoords, setAnimatedMarkerCoords] = useState(new AnimatedRegion({
+        latitude: animRoute[currentRouteCount]?.latitude,
+        longitude: animRoute[currentRouteCount]?.longitude,
+        latitudeDelta: LATITUDE_DELTA,
+        longitudeDelta: LONGITUDE_DELTA
+    }))
+
+    useEffect(() => {
+        console.log(animatedMarkerCoords)
+        setAnimatedMarkerCoords(new AnimatedRegion({
+            latitude: animRoute[currentRouteCount]?.latitude,
+            longitude: animRoute[currentRouteCount]?.longitude,
+            latitudeDelta: LATITUDE_DELTA,
+            longitudeDelta: LONGITUDE_DELTA
+        }))
+    }, [animRoute, currentRouteCount])
+
+    const animateRoute = async () => {
+        console.log("isAnimating: ", isRouteAnimating)
+
+        /* if (isRouteAnimating === 'true') {
+            console.error('a route is already animating')
+            await setIsRouteAnimating('false');
+            return;
+        } else {
+            await setIsRouteAnimating('true');
+        } */
+        console.log(animRoute)
+
+        setInterval(() => {
+            const newCoordinate = { latitude: animRoute[currentRouteCount + 1]?.latitude, longitude: animRoute[currentRouteCount + 1]?.longitude };
+
+            if (Platform.OS == 'android') {
+                if (animatedMarkerRef.current) {
+                    animatedMarkerRef.current.animateMarkerToCoordinate(newCoordinate, 7000);
+                    console.log(animatedMarkerRef.current, currentRouteCount)
+                }
+            } else {
+                animatedMarkerCoords.timing(newCoordinate).start();
+            }
+            setCurrentRouteCount(currentRouteCount + 1)
+        }, 500)
+
+
+    }
+
     useEffect(() => {
         if (selectedMarkerIndex !== null && mapViewRef.current) {
             const selectedMarker = markers[selectedMarkerIndex];
@@ -83,7 +154,15 @@ const MapViewComponent = () => {
                 });
             }
         }
+
+        void (async () => {
+            const newDirection = await getDirections("23.1218644,-82.32806211", "23.1118644,-82.31806211")
+            setAnimRoute(newDirection === undefined ? [] : newDirection)
+        }
+        )()
+
     }, [markers, selectedMarkerIndex]);
+
     console.log("re-rendered mapview")
 
     const animateToRegion = (region: Region) => {
@@ -106,6 +185,19 @@ const MapViewComponent = () => {
                 latitudeDelta: 0.0033333,
             });
         }
+    };
+
+    const handleNavigationPress = () => {
+        animateRoute()
+        if (location) {
+            animateToRegion({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+                longitudeDelta: 0.0033333,
+                latitudeDelta: 0.0033333,
+            });
+        }
+        openUserProfile()
     };
 
     const handlePresentModal = () => {
@@ -153,13 +245,18 @@ const MapViewComponent = () => {
 
                     {location && <UserMarker onPress={openUserProfile} coordinate={location.coords} description='' title='' userId='' heading={heading} />}
 
+                    {animRoute.length > 0 && isRouteAnimating === 'true' && <Marker.Animated onPress={() => { }} coordinate={animatedMarkerCoords} ref={animatedMarkerRef} />}
+
+                    {/* <AnimatingPolyline pathArray={animRoute} /> */}
+
                     <MapViewDirections
                         origin={origin}
                         destination={destination}
                         apikey={process.env.EXPO_PUBLIC_GOOGLE_MAPS_APIKEY || ""}
                         strokeWidth={3}
-                        strokeColor="blue"
-
+                        strokeColor={'black'}
+                        mode='DRIVING'
+                        precision='high'
                     />
                 </MapView>
 
@@ -184,17 +281,7 @@ const MapViewComponent = () => {
                         onPressOut={() => {
                             pressOutNav();
                         }}
-                        onPress={() => {
-                            if (location) {
-                                animateToRegion({
-                                    latitude: location.coords.latitude,
-                                    longitude: location.coords.longitude,
-                                    longitudeDelta: 0.0033333,
-                                    latitudeDelta: 0.0033333,
-                                });
-                            }
-                            openUserProfile()
-                        }}
+                        onPress={handleNavigationPress}
                     >
                         <MaterialIcons
                             name={location ? 'my-location' : 'location-searching'}
@@ -326,3 +413,125 @@ const MapViewComponent = () => {
 };
 
 export default MapViewComponent
+
+
+function AnimatingPolyline({ pathArray }: { pathArray: LatLng[] }) {
+    const [polylinePath, setPolylinePath] = useState<LatLng[]>(pathArray);
+
+    const animatePolylineStart = () => {
+        if (polylinePath.length < pathArray.length) {
+            setPolylinePath([
+                ...pathArray.slice(0, polylinePath.length - 1)
+            ]);
+        } else {
+            setPolylinePath([])
+        }
+
+        console.log(polylinePath)
+    };
+
+    /* useEffect(() => {
+        const intervalSus = setInterval(() => animatePolylineStart(), 70);
+
+
+        return () => {
+            clearInterval(intervalSus);
+        }
+    }) */
+
+    return (
+        <React.Fragment>
+            {
+                (polylinePath.length > 0) && <Polyline
+                    coordinates={polylinePath}
+                    strokeColor="#484848"
+                    strokeWidth={5}
+
+
+                />
+            }
+        </React.Fragment>
+    )
+}
+
+const getDirections = async (startLoc: string, destinationLoc: string) => {
+    try {
+        const resp = await fetch(
+            `https://maps.googleapis.com/maps/api/directions/json?origin=${startLoc}&destination=${destinationLoc}&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_APIKEY || ""}`
+        );
+        const respJson = await resp.json();
+        const coords = polylineDecode(respJson.routes[0].overview_polyline.points).map((point, index) => ({ latitude: point[0] as number, longitude: point[1] as number }));
+        console.log(coords);
+        return coords;
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+const duplicateCoords = (coords: {
+    latitude: number;
+    longitude: number;
+}[]) => {
+
+    const newCoords: {
+        latitude: number;
+        longitude: number;
+    }[] = [];
+
+    for (let i = 0; i < coords.length - 1; i++) {
+        newCoords.push({ latitude: Number(coords[i]?.latitude), longitude: Number(coords[i]?.longitude) });
+        newCoords.push({ latitude: ((Number(coords[i]?.latitude)) + (Number(coords[i + 1]?.latitude))) / 2, longitude: (Number(coords[i]?.longitude) + Number(coords[i + 1]?.longitude)) / 2 });
+    }
+    return newCoords;
+
+}
+
+function polylineDecode(str: string, precision?: number) {
+    let index = 0,
+        lat = 0,
+        lng = 0,
+        coordinates = [],
+        shift = 0,
+        result = 0,
+        byte = null,
+        latitude_change,
+        longitude_change,
+        factor = Math.pow(10, precision !== undefined ? precision : 5);
+
+    // Coordinates have variable length when encoded, so just keep
+    // track of whether we've hit the end of the string. In each
+    // loop iteration, a single coordinate is decoded.
+    while (index < str.length) {
+
+        // Reset shift, result, and byte
+        byte = null;
+        shift = 1;
+        result = 0;
+
+        do {
+            byte = str.charCodeAt(index++) - 63;
+            result += (byte & 0x1f) * shift;
+            shift *= 32;
+        } while (byte >= 0x20);
+
+        latitude_change = (result & 1) ? ((-result - 1) / 2) : (result / 2);
+
+        shift = 1;
+        result = 0;
+
+        do {
+            byte = str.charCodeAt(index++) - 63;
+            result += (byte & 0x1f) * shift;
+            shift *= 32;
+        } while (byte >= 0x20);
+
+        longitude_change = (result & 1) ? ((-result - 1) / 2) : (result / 2);
+
+        lat += latitude_change;
+        lng += longitude_change;
+
+        coordinates.push([lat / factor, lng / factor]);
+    }
+
+    return coordinates;
+};
