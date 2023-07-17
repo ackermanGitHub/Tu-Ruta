@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
 import {
+    ActivityIndicator,
     /* Platform,
     TouchableWithoutFeedback, */
     LayoutAnimation,
     Pressable,
 } from 'react-native';
 
-import { Text/* , View */ } from '../styles/Themed';
+import {
+    Text,/* , View */
+    View
+} from '../styles/Themed';
 import { Feather } from '@expo/vector-icons';
 import Colors from '../styles/Colors';
 import { useColorScheme } from 'nativewind';
 import { useAuth } from '@clerk/clerk-expo';
 import { useAtom } from 'jotai';
 import { signMethodAtom } from './Sign-up';
+import { PressBtn } from '../styles/PressBtn';
 
 const LayoutDropdown = () => {
     const [isOpen, setIsOpen] = React.useState(false);
@@ -20,6 +25,8 @@ const LayoutDropdown = () => {
     const { isLoaded, signOut } = useAuth();
 
     const [signMethod, setSignMethod] = useAtom(signMethodAtom)
+
+    const [isLoading, setIsLoading] = useState(true)
 
     const [width, setWidth] = useState(32);
     const [height, setHeight] = useState(32);
@@ -66,8 +73,69 @@ const LayoutDropdown = () => {
         setIsOpen(false)
     };
 
+    const handleOpenLoading = () => {
+        LayoutAnimation.configureNext({
+            duration: 300,
+            update: {
+                type: 'easeInEaseOut',
+                property: 'opacity',
+            },
+            create: {
+                type: 'easeInEaseOut',
+                property: 'opacity',
+            },
+            delete: {
+                type: 'easeInEaseOut',
+                property: 'opacity',
+            },
+        })
+        setIsLoading(true)
+    };
+
+    const handleCloseLoading = () => {
+        LayoutAnimation.configureNext({
+            duration: 200,
+            update: {
+                type: 'easeInEaseOut',
+                property: 'opacity',
+            },
+            create: {
+                type: 'easeInEaseOut',
+                property: 'opacity',
+            },
+            delete: {
+                type: 'easeInEaseOut',
+                property: 'opacity',
+            },
+        })
+        setIsLoading(false)
+    };
+
     return (
         <>
+
+            <View
+                style={{
+                    display: isLoading ? 'flex' : 'none',
+                }}
+                className='w-full h-full justify-center items-center absolute z-40'
+                lightColor='rgba(51,65,85,0.5)'
+                darkColor='rgba(255,255,255,0.5)'
+            >
+                {isLoading &&
+                    <View className='absolute top-10 mx-auto bg-transparent z-50'>
+                        <ActivityIndicator
+                            size={'large'}
+                            animating
+                            color={colorScheme === 'light' ? 'black' : 'white'}
+                        />
+                        <PressBtn onPress={() => { handleCloseLoading() }} className={'w-[200px] max-[367px]:w-[180px] max-w-[280px] bg-[#FCCB6F] mt-4 dark:bg-white rounded-3xl h-12 max-[367px]:h-8 flex-row justify-center items-center'} >
+                            <Text darkColor="black" className={'text-white dark:text-black font-bold text-lg max-[367px]:text-base mr-3'}>Cancelar</Text>
+                        </PressBtn>
+                    </View>
+                }
+            </View>
+
             <Pressable
                 onPress={handleOpenDropdown}
                 className='absolute justify-center items-center right-5 top-5 z-30'
@@ -90,16 +158,24 @@ const LayoutDropdown = () => {
 
                 {isOpen &&
                     <>
-                        <Pressable onPress={() => { console.log("Cambiar Imagen") }}>
-                            <Text className='text-sm '>Cambiar Imagen</Text>
+                        <Pressable onPress={() => { handleOpenLoading() }}>
+                            <Text className='text-sm '>Open Loading</Text>
                         </Pressable>
-                        <Pressable onPress={() => { console.log("Cambiar Nombre") }}>
-                            <Text className='text-sm '>Cambiar Nombre</Text>
+                        <Pressable onPress={() => { handleCloseLoading() }}>
+                            <Text className='text-sm '>Close Loading</Text>
                         </Pressable>
                         <Pressable onPress={() => {
                             console.log('closing session')
+                            handleOpenLoading()
                             if (isLoaded && signMethod !== 'undefined') {
-                                void signOut()
+                                signOut()
+                                    .then(() => {
+                                        handleCloseLoading()
+                                    })
+                                    .catch((error) => {
+                                        console.error(error)
+                                        handleCloseLoading()
+                                    })
                             }
                         }}>
                             <Text className='text-sm '>Cerrar Sesión</Text>

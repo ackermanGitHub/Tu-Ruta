@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Image,
     Pressable,
@@ -6,7 +6,8 @@ import {
     StatusBar,
     Switch,
     Platform,
-    Dimensions
+    Dimensions,
+    Easing
 } from "react-native";
 import MapViewDirections from 'react-native-maps-directions';
 import {
@@ -15,7 +16,7 @@ import {
 } from "@gorhom/bottom-sheet";
 
 import { NightMap } from '../styles/NightMap';
-import MapView, { type MapMarker, type Region, PROVIDER_GOOGLE, Polyline, type LatLng, Marker, AnimatedRegion, MarkerAnimated, } from 'react-native-maps';
+import MapView, { type MapMarker, type Region, PROVIDER_GOOGLE, Polyline, type LatLng, Marker, AnimatedRegion } from 'react-native-maps';
 
 import { type MarkerData } from '../constants/Markers';
 import useMapConnection from '../hooks/useMapConnection';
@@ -42,6 +43,7 @@ import LayoutDropdown from './LayoutDropdown';
 
 import { atomWithStorage, createJSONStorage, } from 'jotai/utils';
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { } from 'react-native-maps/lib/MapMarkerNativeComponent';
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
@@ -56,11 +58,9 @@ const destination = { latitude: 23.1286927367378, longitude: -82.39208780229092 
 const storedIsRouteAnimating = createJSONStorage<'true' | 'false' | 'unknown'>(() => AsyncStorage)
 export const isRouteAnimatingAtom = atomWithStorage<'true' | 'false' | 'unknown'>('isRouteAnimating', "false", storedIsRouteAnimating)
 
-
-const storedCurrentRouteCount = createJSONStorage<number>(() => AsyncStorage)
-export const currentRouteCountAtom = atomWithStorage<number>('currentRouteCountAtom', 0, storedCurrentRouteCount)
-
 const MapViewComponent = () => {
+    const [isSheetModalLoading, setIsSheetModalLoading] = useState(false);
+
     const [profileRole, _setProfileRole] = useAtom(profileRoleAtom)
     const [profileState, setProfileState] = useAtom(profileStateAtom)
     const [signMethod, setSignMethod] = useAtom(signMethodAtom)
@@ -72,7 +72,6 @@ const MapViewComponent = () => {
     const _userMarkerRef = useRef<MapMarker>(null);
     const mapViewRef = useRef<MapView>(null);
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-
 
     const { user, isLoaded, isSignedIn } = useUser()
     const { colorScheme } = useColorScheme();
@@ -92,54 +91,86 @@ const MapViewComponent = () => {
 
     const [animRoute, setAnimRoute] = useState<LatLng[]>([])
 
-    const animatedMarkerRef = useRef();
+    const [route_count, set_route_count] = useState(0);
+    const anim_route_mark_ref = useRef<MapMarker | null>(null)
 
-    const [currentRouteCount, setCurrentRouteCount] = useAtom(currentRouteCountAtom)
-
-    const [animatedMarkerCoords, setAnimatedMarkerCoords] = useState(new AnimatedRegion({
-        latitude: animRoute[currentRouteCount]?.latitude,
-        longitude: animRoute[currentRouteCount]?.longitude,
-        latitudeDelta: LATITUDE_DELTA,
-        longitudeDelta: LONGITUDE_DELTA
-    }))
-
-    useEffect(() => {
-        console.log(animatedMarkerCoords)
-        setAnimatedMarkerCoords(new AnimatedRegion({
-            latitude: animRoute[currentRouteCount]?.latitude,
-            longitude: animRoute[currentRouteCount]?.longitude,
+    const [anim_route_mark, set_anim_route_mark] = useState({
+        cur_loc: {
+            latitude: 23.1218644,
+            longitude: -82.32806211,
+        },
+        destination_cords: {},
+        is_loading: false,
+        coordinate: new AnimatedRegion({
+            latitude: 23.1218644,
+            longitude: -82.32806211,
             latitudeDelta: LATITUDE_DELTA,
             longitudeDelta: LONGITUDE_DELTA
-        }))
-    }, [animRoute, currentRouteCount])
+        })
+    })
 
-    const animateRoute = async () => {
-        console.log("isAnimating: ", isRouteAnimating)
+    const getLiveLocation = useCallback(() => {
+        console.log('locationCount: ', animRoute.length + ' - ' + 'count: ', route_count);
+        if (animRoute.length !== route_count) {
 
-        /* if (isRouteAnimating === 'true') {
-            console.error('a route is already animating')
-            await setIsRouteAnimating('false');
-            return;
-        } else {
-            await setIsRouteAnimating('true');
-        } */
-        console.log(animRoute)
+            const latitude = animRoute[route_count + 1]?.latitude;
+            const longitude = animRoute[route_count + 1]?.longitude;
+            set_route_count(route_count + 1)
 
-        setInterval(() => {
-            const newCoordinate = { latitude: animRoute[currentRouteCount + 1]?.latitude, longitude: animRoute[currentRouteCount + 1]?.longitude };
-
-            if (Platform.OS == 'android') {
-                if (animatedMarkerRef.current) {
-                    animatedMarkerRef.current.animateMarkerToCoordinate(newCoordinate, 7000);
-                    console.log(animatedMarkerRef.current, currentRouteCount)
-                }
-            } else {
-                animatedMarkerCoords.timing(newCoordinate).start();
+            if (!latitude || !longitude) {
+                return
             }
-            setCurrentRouteCount(currentRouteCount + 1)
-        }, 500)
 
+            console.log('latitude  ', latitude);
+            console.log('longitude  ', longitude);
 
+            animate(latitude, longitude);
+
+        } else {
+            set_route_count(0)
+        }
+    }, [animRoute, route_count])
+
+    const animate = (latitude: number, longitude: number) => {
+        const newCoordinate = { latitude, longitude };
+
+        if (Platform.OS == 'android') {
+            if (anim_route_mark_ref.current) {
+                // anim_route_mark_ref.current.animateMarkerToCoordinate(newCoordinate, 7000)
+                // anim_route_mark.coordinate.timing({ ...newCoordinate, duration: 2000 }).start();
+
+                anim_route_mark.coordinate.timing({
+                    ...newCoordinate, duration: 2000, easing: Easing.linear,
+                    toValue: 0,
+                    useNativeDriver: false,
+                    latitudeDelta: 0,
+                    longitudeDelta: 0
+                }).start();
+                console.log("animateMarkerToCoordinate")
+            }
+        } else {
+            anim_route_mark.coordinate.timing({
+                ...newCoordinate, duration: 2000, easing: Easing.linear,
+                toValue: 0,
+                useNativeDriver: false,
+                latitudeDelta: 0,
+                longitudeDelta: 0
+            }).start();
+        }
+
+        // anim_route_mark.coordinate.timing({ ...newCoordinate, duration: 2000 }).start();
+
+        /* set_anim_route_mark({
+            ...anim_route_mark,
+            cur_loc: { latitude, longitude },
+            coordinate: new AnimatedRegion({
+                latitude: latitude,
+                longitude: longitude,
+                latitudeDelta: LATITUDE_DELTA,
+                longitudeDelta: LONGITUDE_DELTA
+            })
+
+        }) */
     }
 
     useEffect(() => {
@@ -188,7 +219,7 @@ const MapViewComponent = () => {
     };
 
     const handleNavigationPress = () => {
-        animateRoute()
+        getLiveLocation()
         if (location) {
             animateToRegion({
                 latitude: location.coords.latitude,
@@ -245,7 +276,10 @@ const MapViewComponent = () => {
 
                     {location && <UserMarker onPress={openUserProfile} coordinate={location.coords} description='' title='' userId='' heading={heading} />}
 
-                    {animRoute.length > 0 && isRouteAnimating === 'true' && <Marker.Animated onPress={() => { }} coordinate={animatedMarkerCoords} ref={animatedMarkerRef} />}
+                    {
+                        /* @ts-ignore */
+                        animRoute.length > 0 && <Marker.Animated onPress={() => { }} coordinate={anim_route_mark.coordinate} ref={anim_route_mark_ref} />
+                    }
 
                     {/* <AnimatingPolyline pathArray={animRoute} /> */}
 
@@ -347,6 +381,7 @@ const MapViewComponent = () => {
 
                             </View>
                         )}
+
 
                         {(userSelected && isSignedIn && isLoaded) && (
                             <View className='w-full h-full'>
