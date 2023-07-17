@@ -71,6 +71,9 @@ importers:
       expo-auth-session:
         specifier: ~5.0.2
         version: 5.0.2(expo@49.0.0-beta.0)
+      expo-blur:
+        specifier: ~12.4.1
+        version: 12.4.1(expo@49.0.0-beta.0)
       expo-crypto:
         specifier: ~12.4.1
         version: 12.4.1(expo@49.0.0-beta.0)
@@ -6503,6 +6506,14 @@ packages:
     transitivePeerDependencies:
       - expo
       - supports-color
+    dev: false
+
+  /expo-blur@12.4.1(expo@49.0.0-beta.0):
+    resolution: {integrity: sha512-lGN8FS9LuGUlEriULTC62cCWyg5V7zSVQeJ6Duh1wSq8aAETinZ2/7wrT6o+Uhd/XVVxFNON2T25AGCOtMG6ew==}
+    peerDependencies:
+      expo: '*'
+    dependencies:
+      expo: 49.0.0-beta.0(@babel/core@7.20.5)
     dev: false
 
   /expo-constants@14.4.2(expo@49.0.0-beta.0):
