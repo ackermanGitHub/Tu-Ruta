@@ -58,13 +58,16 @@ const destination = { latitude: 23.1286927367378, longitude: -82.39208780229092 
 const storedIsRouteAnimating = createJSONStorage<'true' | 'false' | 'unknown'>(() => AsyncStorage)
 export const isRouteAnimatingAtom = atomWithStorage<'true' | 'false' | 'unknown'>('isRouteAnimating', "false", storedIsRouteAnimating)
 
-const MapViewComponent = () => {
-    const [isSheetModalLoading, setIsSheetModalLoading] = useState(false);
+const storedUserMarkers = createJSONStorage<MarkerData[]>(() => AsyncStorage)
+export const userMarkersAtom = atomWithStorage<MarkerData[]>('userMarkers', [], storedUserMarkers)
 
+const MapViewComponent = () => {
+
+    const [userMarkers, setUserMarkers] = useAtom(userMarkersAtom)
     const [profileRole, _setProfileRole] = useAtom(profileRoleAtom)
     const [profileState, setProfileState] = useAtom(profileStateAtom)
-    const [signMethod, setSignMethod] = useAtom(signMethodAtom)
-    const [isRouteAnimating, setIsRouteAnimating] = useAtom(isRouteAnimatingAtom)
+    // const [signMethod, setSignMethod] = useAtom(signMethodAtom)
+    // const [isRouteAnimating, setIsRouteAnimating] = useAtom(isRouteAnimatingAtom)
 
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const [userSelected, setUserSelected] = useState(true);
@@ -81,8 +84,11 @@ const MapViewComponent = () => {
     const { animatedValue: pressNavAnim, handlePressIn: pressInNav, handlePressOut: pressOutNav/* , isPressed: isNavPressed */ } = usePressIn()
     const [_isModalVisible, setIsModalVisible] = useState(false);
 
-    const { markers, location, heading } = useMapConnection();
+    const [addingMarker, setAddingMarker] = useState(false);
+    const addingMarkerDataRef = useRef<MarkerData | null>(null);
+    const addingMarkerLocationRef = useRef<LatLng | null>(null);
 
+    const { markers, location, heading } = useMapConnection();
 
     const { width, height } = Dimensions.get('window');
     const ASPECT_RATIO = width / height;
@@ -262,7 +268,7 @@ const MapViewComponent = () => {
                         latitudeDelta: 0.0322,
                         longitudeDelta: 0.0221,
                     }}
-                    showsCompass={false}
+                    onRegionChangeComplete={(region) => { addingMarkerLocationRef.current = region }}
                     ref={mapViewRef}
                     provider={PROVIDER_GOOGLE}
                     customMapStyle={colorScheme === 'dark' ? NightMap : undefined}
@@ -276,6 +282,10 @@ const MapViewComponent = () => {
 
                     {location && <UserMarker onPress={openUserProfile} coordinate={location.coords} description='' title='' userId='' heading={heading} />}
 
+                    <Marker coordinate={{
+                        latitude: 23.13137284807039,
+                        longitude: -82.39406442269683
+                    }} />
                     {
                         /* @ts-ignore */
                         animRoute.length > 0 && <Marker.Animated onPress={() => { }} coordinate={anim_route_mark.coordinate} ref={anim_route_mark_ref} />
@@ -293,6 +303,31 @@ const MapViewComponent = () => {
                         precision='high'
                     />
                 </MapView>
+
+                {
+                    addingMarker || true &&
+                    <>
+                        <View style={{
+                            right: (width / 2) - 25,
+                            top: (height / 2) - 32,
+                        }} className='absolute bg-transparent'>
+                            <MaterialIcons
+                                name={'location-on'}
+                                size={50}
+                                color={Colors[colorScheme ?? 'light'].text}
+                            />
+                        </View>
+
+                        <PressBtn
+                            style={{
+                                right: (width / 2) - (width >= 367 ? 100 : 90),
+                            }}
+                            onPress={() => { console.log(addingMarkerLocationRef.current) }} className={'absolute bottom-5 h-12 max-[367px]:h-8 w-[200px] max-[367px]:w-[180px] mt-4 bg-[#FCCB6F] dark:bg-white rounded-3xl flex-row justify-center items-center'}
+                        >
+                            <Text darkColor="black" className={'text-white dark:text-black font-bold text-lg max-[367px]:text-base mr-3'}>Confirmar</Text>
+                        </PressBtn>
+                    </>
+                }
 
 
                 <Animated.View
@@ -408,12 +443,35 @@ const MapViewComponent = () => {
 
                                 <View className={'w-full h-20 justify-between flex-row bg-transparent'}>
                                     <View className='bg-transparent h-full justify-end ml-5'>
-                                        <Text className='font-bold text-lg'>{`${user.firstName} ${user.lastName}`}</Text>
-                                        <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@{`${user.username}`}</Text>
+                                        <View className='bg-transparent'>
+                                            <View className='absolute -top-2 -right-4 rounded-full justify-center items-center'>
+                                                <MaterialIcons
+                                                    name='edit'
+                                                    size={16}
+                                                    color={Colors[colorScheme ?? 'light'].text}
+                                                />
+                                            </View>
+                                            <Text className='font-bold text-lg'>{`${user.firstName} ${user.lastName}`}</Text>
+                                        </View>
+                                        <View>
+                                            <View className='absolute top-0 right-0 rounded-full justify-center items-center'>
+                                                <MaterialIcons
+                                                    name='edit'
+                                                    size={16}
+                                                    color={Colors[colorScheme ?? 'light'].text}
+                                                />
+                                            </View>
+                                            <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@{`${user.username}`}</Text>
+                                        </View>
                                     </View>
                                     <PressBtn onPress={() => { return }}>
-                                        <View className=' h-10 w-32 mt-3 mr-5 justify-center items-center rounded-2xl border-zinc-400 dark:border-zinc-800'>
-                                            <Text className='font-bold text-base'>Editar Perfil</Text>
+                                        <View className=' h-10 px-2 mt-3 mr-5 flex-row justify-center items-center rounded-2xl border-zinc-400 dark:border-zinc-800'>
+                                            <MaterialIcons
+                                                name='edit'
+                                                size={16}
+                                                color={Colors[colorScheme ?? 'light'].text}
+                                            />
+                                            <Text className='font-bold ml-2 text-base'>Editar Perfil</Text>
                                         </View>
                                     </PressBtn>
                                 </View>

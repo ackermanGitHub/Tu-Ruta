@@ -11,13 +11,14 @@ import {
     Text,/* , View */
     View
 } from '../styles/Themed';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 import Colors from '../styles/Colors';
 import { useColorScheme } from 'nativewind';
 import { useAuth } from '@clerk/clerk-expo';
 import { useAtom } from 'jotai';
 import { signMethodAtom } from './Sign-up';
 import { PressBtn } from '../styles/PressBtn';
+import { BlurView } from 'expo-blur';
 
 const LayoutDropdown = () => {
     const [isOpen, setIsOpen] = React.useState(false);
@@ -26,7 +27,7 @@ const LayoutDropdown = () => {
 
     const [signMethod, setSignMethod] = useAtom(signMethodAtom)
 
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoading, setIsLoading] = useState(false)
 
     const [width, setWidth] = useState(32);
     const [height, setHeight] = useState(32);
@@ -114,13 +115,12 @@ const LayoutDropdown = () => {
     return (
         <>
 
-            <View
+            <BlurView
                 style={{
                     display: isLoading ? 'flex' : 'none',
                 }}
                 className='w-full h-full justify-center items-center absolute z-40'
-                lightColor='rgba(51,65,85,0.5)'
-                darkColor='rgba(255,255,255,0.5)'
+                intensity={10}
             >
                 {isLoading &&
                     <View className='absolute top-10 mx-auto bg-transparent z-50'>
@@ -129,12 +129,12 @@ const LayoutDropdown = () => {
                             animating
                             color={colorScheme === 'light' ? 'black' : 'white'}
                         />
-                        <PressBtn onPress={() => { handleCloseLoading() }} className={'w-[200px] max-[367px]:w-[180px] max-w-[280px] bg-[#FCCB6F] mt-4 dark:bg-white rounded-3xl h-12 max-[367px]:h-8 flex-row justify-center items-center'} >
+                        {/* <PressBtn onPress={() => { handleCloseLoading() }} className={'w-[200px] max-[367px]:w-[180px] max-w-[280px] bg-[#FCCB6F] mt-4 dark:bg-white rounded-3xl h-12 max-[367px]:h-8 flex-row justify-center items-center'} >
                             <Text darkColor="black" className={'text-white dark:text-black font-bold text-lg max-[367px]:text-base mr-3'}>Cancelar</Text>
-                        </PressBtn>
+                        </PressBtn> */}
                     </View>
                 }
-            </View>
+            </BlurView>
 
             <Pressable
                 onPress={handleOpenDropdown}
@@ -162,23 +162,32 @@ const LayoutDropdown = () => {
                             <Text className='text-sm '>Open Loading</Text>
                         </Pressable>
                         <Pressable onPress={() => { handleCloseLoading() }}>
-                            <Text className='text-sm '>Close Loading</Text>
+
+                            <Text className='text-sm'>Close Loading</Text>
                         </Pressable>
-                        <Pressable onPress={() => {
-                            console.log('closing session')
-                            handleOpenLoading()
-                            if (isLoaded && signMethod !== 'undefined') {
-                                signOut()
-                                    .then(() => {
-                                        handleCloseLoading()
-                                    })
-                                    .catch((error) => {
-                                        console.error(error)
-                                        handleCloseLoading()
-                                    })
-                            }
-                        }}>
-                            <Text className='text-sm '>Cerrar Sesión</Text>
+                        <Pressable
+                            onPress={() => {
+                                console.log('closing session')
+                                handleOpenLoading()
+                                if (isLoaded && signMethod !== 'undefined') {
+                                    signOut()
+                                        .then(() => {
+                                            handleCloseLoading()
+                                        })
+                                        .catch((error) => {
+                                            console.error(error)
+                                            handleCloseLoading()
+                                        })
+                                }
+                            }}
+                            className='w-full flex-row justify-start items-center pl-2'
+                        >
+                            <MaterialIcons
+                                name='close'
+                                size={16}
+                                color={Colors[colorScheme ?? 'light'].text}
+                            />
+                            <Text className='text-sm ml-2 text-red-600'>Cerrar Sesión</Text>
                         </Pressable>
                     </>
                 }
