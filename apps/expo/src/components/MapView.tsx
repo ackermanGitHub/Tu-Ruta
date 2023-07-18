@@ -7,7 +7,7 @@ import {
     Switch,
     Platform,
     Dimensions,
-    Easing
+    Easing,
 } from "react-native";
 import MapViewDirections from 'react-native-maps-directions';
 import {
@@ -192,15 +192,13 @@ const MapViewComponent = () => {
             }
         }
 
-        void (async () => {
+        /* void (async () => {
             const newDirection = await getDirections("23.1218644,-82.32806211", "23.1118644,-82.31806211")
             setAnimRoute(newDirection === undefined ? [] : newDirection)
         }
-        )()
+        )() */
 
     }, [markers, selectedMarkerIndex]);
-
-    console.log("re-rendered mapview")
 
     const animateToRegion = (region: Region) => {
         mapViewRef.current && mapViewRef.current.animateToRegion(region)
@@ -268,6 +266,10 @@ const MapViewComponent = () => {
                         latitudeDelta: 0.0322,
                         longitudeDelta: 0.0221,
                     }}
+                    showsMyLocationButton
+                    showsUserLocation
+                    showsCompass={false}
+                    toolbarEnabled={false}
                     onRegionChangeComplete={(region) => { addingMarkerLocationRef.current = region }}
                     ref={mapViewRef}
                     provider={PROVIDER_GOOGLE}
@@ -283,10 +285,11 @@ const MapViewComponent = () => {
                     {location && <UserMarker onPress={openUserProfile} coordinate={location.coords} description='' title='' userId='' heading={heading} />}
 
                     <Marker coordinate={{
-                        latitude: 23.13137284807039,
-                        longitude: -82.39406442269683
+                        latitude: 23.118371667346942,
+                        longitude: -82.38046813756227
                     }} />
                     {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         /* @ts-ignore */
                         animRoute.length > 0 && <Marker.Animated onPress={() => { }} coordinate={anim_route_mark.coordinate} ref={anim_route_mark_ref} />
                     }
@@ -307,13 +310,16 @@ const MapViewComponent = () => {
                 {
                     addingMarker || true &&
                     <>
-                        <View style={{
-                            right: (width / 2) - 25,
-                            top: (height / 2) - 32,
-                        }} className='absolute bg-transparent'>
+                        <View
+                            style={{
+                                right: (width / 2) - 24,
+                                top: (height / 2) - 48,
+                            }}
+                            className='absolute bg-transparent h-12 w-12 overflow-hidden justify-end items-center border border-red-500'
+                        >
                             <MaterialIcons
                                 name={'location-on'}
-                                size={50}
+                                size={48}
                                 color={Colors[colorScheme ?? 'light'].text}
                             />
                         </View>
@@ -322,7 +328,25 @@ const MapViewComponent = () => {
                             style={{
                                 right: (width / 2) - (width >= 367 ? 100 : 90),
                             }}
-                            onPress={() => { console.log(addingMarkerLocationRef.current) }} className={'absolute bottom-5 h-12 max-[367px]:h-8 w-[200px] max-[367px]:w-[180px] mt-4 bg-[#FCCB6F] dark:bg-white rounded-3xl flex-row justify-center items-center'}
+                            onPress={() => {
+                                console.log({
+                                    currentRegion: addingMarkerLocationRef.current,
+                                    statusBarHeight: StatusBar.currentHeight,
+                                    screenWidth: Dimensions.get("screen").width,
+                                    screenHeight: Dimensions.get("screen").height,
+                                    windowWidth: width,
+                                    windowHeight: height
+                                })
+                                const getPoint = async () => {
+                                    const pointCoords = await mapViewRef.current?.coordinateForPoint({
+                                        x: (width / 2),
+                                        y: (height / 2),
+                                    })
+                                    console.log(pointCoords)
+                                }
+                                void getPoint()
+                            }}
+                            className={'absolute bottom-5 h-12 max-[367px]:h-8 w-[200px] max-[367px]:w-[180px] mt-4 bg-[#FCCB6F] dark:bg-white rounded-3xl flex-row justify-center items-center'}
                         >
                             <Text darkColor="black" className={'text-white dark:text-black font-bold text-lg max-[367px]:text-base mr-3'}>Confirmar</Text>
                         </PressBtn>
