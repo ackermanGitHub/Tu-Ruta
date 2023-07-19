@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Image,
-    Pressable,
     Animated,
     StatusBar,
     Switch,
     Platform,
     Dimensions,
     Easing,
+    LayoutAnimation
 } from "react-native";
 import MapViewDirections from 'react-native-maps-directions';
 import {
@@ -16,7 +16,7 @@ import {
 } from "@gorhom/bottom-sheet";
 
 import { NightMap } from '../styles/NightMap';
-import MapView, { type MapMarker, type Region, PROVIDER_GOOGLE, Polyline, type LatLng, Marker, AnimatedRegion } from 'react-native-maps';
+import MapView, { type MapMarker, type Region, PROVIDER_GOOGLE, type LatLng, Marker, AnimatedRegion } from 'react-native-maps';
 
 import { type MarkerData } from '../constants/Markers';
 import useMapConnection from '../hooks/useMapConnection';
@@ -27,8 +27,6 @@ import Colors from '../styles/Colors';
 // import NetInfo from '@react-native-community/netinfo';
 
 import { useUser } from '@clerk/clerk-expo';
-import useFadeIn from '../hooks/useFadeIn';
-import usePressIn from '../hooks/usePressIn';
 import { useColorScheme } from 'nativewind';
 
 import { useKeepAwake } from 'expo-keep-awake';
@@ -38,12 +36,11 @@ import UserMarker from '../markers/UserMarker';
 import CarMarker from '../markers/CarMarker';
 import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
 import { useAtom, } from 'jotai';
-import { signMethodAtom } from './Sign-up';
 import LayoutDropdown from './LayoutDropdown';
 
 import { atomWithStorage, createJSONStorage, } from 'jotai/utils';
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { } from 'react-native-maps/lib/MapMarkerNativeComponent';
+import { TouchableWithoutFeedback } from 'react-native';
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
@@ -63,10 +60,13 @@ export const userMarkersAtom = atomWithStorage<MarkerData[]>('userMarkers', [], 
 
 const MapViewComponent = () => {
 
+    const [isMenuOpen, setIsMenuOpen] = useState(false)
+    const [isMenuVisible, setIsMenuVisible] = useState(true)
+    const navigationAnimValueRef = useRef(new Animated.Value(0)).current;
+
     const [userMarkers, setUserMarkers] = useAtom(userMarkersAtom)
     const [profileRole, _setProfileRole] = useAtom(profileRoleAtom)
     const [profileState, setProfileState] = useAtom(profileStateAtom)
-    // const [signMethod, setSignMethod] = useAtom(signMethodAtom)
     // const [isRouteAnimating, setIsRouteAnimating] = useAtom(isRouteAnimatingAtom)
 
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
@@ -80,13 +80,10 @@ const MapViewComponent = () => {
     const { colorScheme } = useColorScheme();
     useKeepAwake();
 
-    const { animatedValue: fadeNavAnim, fadeIn: _fadeInNav, fadeOut: _fadeOutNav, isVisible: _isNavVisible } = useFadeIn({ defaultValue: true })
-    const { animatedValue: pressNavAnim, handlePressIn: pressInNav, handlePressOut: pressOutNav/* , isPressed: isNavPressed */ } = usePressIn()
     const [_isModalVisible, setIsModalVisible] = useState(false);
 
-    const [addingMarker, setAddingMarker] = useState(false);
-    const addingMarkerDataRef = useRef<MarkerData | null>(null);
-    const addingMarkerLocationRef = useRef<LatLng | null>(null);
+    const [isAddingMarker, setIsAddingMarker] = useState(false);
+    const addingMarkerDataRef = useRef<MarkerData & { coords: LatLng } | null>(null);
 
     const { markers, location, heading } = useMapConnection();
 
@@ -95,12 +92,12 @@ const MapViewComponent = () => {
     const LATITUDE_DELTA = 0.003;
     const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
-    const [animRoute, setAnimRoute] = useState<LatLng[]>([])
+    const [animRoute, _setAnimRoute] = useState<LatLng[]>([])
 
     const [route_count, set_route_count] = useState(0);
-    const anim_route_mark_ref = useRef<MapMarker | null>(null)
+    const anim_route_marker_ref = useRef<MapMarker | null>(null)
 
-    const [anim_route_mark, set_anim_route_mark] = useState({
+    const [anim_route_marker, _set_anim_route_marker] = useState({
         cur_loc: {
             latitude: 23.1218644,
             longitude: -82.32806211,
@@ -141,11 +138,11 @@ const MapViewComponent = () => {
         const newCoordinate = { latitude, longitude };
 
         if (Platform.OS == 'android') {
-            if (anim_route_mark_ref.current) {
-                // anim_route_mark_ref.current.animateMarkerToCoordinate(newCoordinate, 7000)
-                // anim_route_mark.coordinate.timing({ ...newCoordinate, duration: 2000 }).start();
+            if (anim_route_marker_ref.current) {
+                // anim_route_marker_ref.current.animateMarkerToCoordinate(newCoordinate, 7000)
+                // anim_route_marker.coordinate.timing({ ...newCoordinate, duration: 2000 }).start();
 
-                anim_route_mark.coordinate.timing({
+                anim_route_marker.coordinate.timing({
                     ...newCoordinate, duration: 2000, easing: Easing.linear,
                     toValue: 0,
                     useNativeDriver: false,
@@ -155,7 +152,7 @@ const MapViewComponent = () => {
                 console.log("animateMarkerToCoordinate")
             }
         } else {
-            anim_route_mark.coordinate.timing({
+            anim_route_marker.coordinate.timing({
                 ...newCoordinate, duration: 2000, easing: Easing.linear,
                 toValue: 0,
                 useNativeDriver: false,
@@ -164,10 +161,10 @@ const MapViewComponent = () => {
             }).start();
         }
 
-        // anim_route_mark.coordinate.timing({ ...newCoordinate, duration: 2000 }).start();
+        // anim_route_marker.coordinate.timing({ ...newCoordinate, duration: 2000 }).start();
 
-        /* set_anim_route_mark({
-            ...anim_route_mark,
+        /* set_anim_route_marker({
+            ...anim_route_marker,
             cur_loc: { latitude, longitude },
             coordinate: new AnimatedRegion({
                 latitude: latitude,
@@ -223,7 +220,8 @@ const MapViewComponent = () => {
     };
 
     const handleNavigationPress = () => {
-        getLiveLocation()
+        // openUserProfileHandler()
+        // getLiveLocation()
         if (location) {
             animateToRegion({
                 latitude: location.coords.latitude,
@@ -232,7 +230,6 @@ const MapViewComponent = () => {
                 latitudeDelta: 0.0033333,
             });
         }
-        openUserProfile()
     };
 
     const handlePresentModal = () => {
@@ -240,12 +237,36 @@ const MapViewComponent = () => {
         setIsModalVisible(true);
     }
 
-    const openUserProfile = () => {
+    const openUserProfileHandler = () => {
         bottomSheetModalRef.current?.present();
         setUserSelected(true)
         setIsModalVisible(true);
+        if (isMenuOpen) {
+            toogleNavMenu()
+        }
     }
 
+    const toogleNavMenu = () => {
+
+        const toValue = isMenuOpen ? 0 : 1
+        setIsMenuOpen(!isMenuOpen)
+
+        Animated.spring(navigationAnimValueRef, {
+            toValue,
+            friction: 5,
+            useNativeDriver: true,
+        }).start()
+
+    }
+
+    const addMarkerHandler = () => {
+        LayoutAnimation.linear()
+        setIsMenuVisible(false)
+        setIsAddingMarker(!isAddingMarker)
+        if (isMenuOpen) {
+            toogleNavMenu()
+        }
+    }
 
     return (
         <BottomSheetModalProvider>
@@ -270,7 +291,6 @@ const MapViewComponent = () => {
                     showsUserLocation
                     showsCompass={false}
                     toolbarEnabled={false}
-                    onRegionChangeComplete={(region) => { addingMarkerLocationRef.current = region }}
                     ref={mapViewRef}
                     provider={PROVIDER_GOOGLE}
                     customMapStyle={colorScheme === 'dark' ? NightMap : undefined}
@@ -282,7 +302,7 @@ const MapViewComponent = () => {
                         );
                     })}
 
-                    {location && <UserMarker onPress={openUserProfile} coordinate={location.coords} description='' title='' userId='' heading={heading} />}
+                    {location && <UserMarker onPress={openUserProfileHandler} coordinate={location.coords} description='' title='' userId='' heading={heading} />}
 
                     <Marker coordinate={{
                         latitude: 23.118371667346942,
@@ -291,7 +311,7 @@ const MapViewComponent = () => {
                     {
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         /* @ts-ignore */
-                        animRoute.length > 0 && <Marker.Animated onPress={() => { }} coordinate={anim_route_mark.coordinate} ref={anim_route_mark_ref} />
+                        animRoute.length > 0 && <Marker.Animated onPress={() => { }} coordinate={anim_route_marker.coordinate} ref={anim_route_marker_ref} />
                     }
 
                     {/* <AnimatingPolyline pathArray={animRoute} /> */}
@@ -308,14 +328,14 @@ const MapViewComponent = () => {
                 </MapView>
 
                 {
-                    addingMarker || true &&
+                    isAddingMarker &&
                     <>
                         <View
                             style={{
                                 right: (width / 2) - 24,
                                 top: (height / 2) - 48,
                             }}
-                            className='absolute bg-transparent h-12 w-12 overflow-hidden justify-end items-center border border-red-500'
+                            className='absolute bg-transparent h-12 w-12 overflow-hidden justify-end items-center'
                         >
                             <MaterialIcons
                                 name={'location-on'}
@@ -324,65 +344,174 @@ const MapViewComponent = () => {
                             />
                         </View>
 
-                        <PressBtn
+                        <View
                             style={{
                                 right: (width / 2) - (width >= 367 ? 100 : 90),
                             }}
-                            onPress={() => {
-                                console.log({
-                                    currentRegion: addingMarkerLocationRef.current,
-                                    statusBarHeight: StatusBar.currentHeight,
-                                    screenWidth: Dimensions.get("screen").width,
-                                    screenHeight: Dimensions.get("screen").height,
-                                    windowWidth: width,
-                                    windowHeight: height
-                                })
-                                const getPoint = async () => {
-                                    const pointCoords = await mapViewRef.current?.coordinateForPoint({
-                                        x: (width / 2),
-                                        y: (height / 2),
-                                    })
-                                    console.log(pointCoords)
-                                }
-                                void getPoint()
-                            }}
-                            className={'absolute bottom-5 h-12 max-[367px]:h-8 w-[200px] max-[367px]:w-[180px] mt-4 bg-[#FCCB6F] dark:bg-white rounded-3xl flex-row justify-center items-center'}
+                            className='h-24 bg-transparent absolute bottom-5 items-center justify-between'
                         >
-                            <Text darkColor="black" className={'text-white dark:text-black font-bold text-lg max-[367px]:text-base mr-3'}>Confirmar</Text>
-                        </PressBtn>
+                            <PressBtn
+                                onPress={() => { }}
+                                className={'h-10 w-24 max-[367px]:h-8 bg-black dark:bg-white rounded-3xl flex-row justify-evenly items-center'}
+                            >
+                                <MaterialIcons
+                                    name={'work'}
+                                    size={28}
+                                    color={Colors[colorScheme === 'dark' ? 'light' : 'dark'].text}
+                                />
+                                <MaterialIcons
+                                    name={'arrow-drop-up'}
+                                    size={24}
+                                    color={Colors[colorScheme === 'dark' ? 'light' : 'dark'].text}
+                                />
+                            </PressBtn>
+
+                            <PressBtn
+                                onPress={() => {
+                                    const getPoint = async () => {
+                                        const pointCoords = await mapViewRef.current?.coordinateForPoint({
+                                            x: (width / 2),
+                                            y: (height / 2),
+                                        })
+                                    }
+                                    void getPoint()
+                                    LayoutAnimation.linear()
+                                    setIsAddingMarker(false)
+                                    setIsMenuVisible(true)
+                                }}
+                                className={'h-12 max-[367px]:h-8 w-[200px] max-[367px]:w-[180px] bg-[#FCCB6F] dark:bg-white rounded-3xl justify-center items-center'}
+                            >
+                                <Text darkColor="black" className={'text-white dark:text-black font-bold text-lg max-[367px]:text-base'}>Confirmar</Text>
+                            </PressBtn>
+                        </View>
                     </>
                 }
 
-
-                <Animated.View
-                    className={'bg-transparent absolute z-20 bottom-24 right-12 flex-row justify-center items-center text-center self-center rounded-full'}
-                    style={[
-                        {
-                            transform: [
-                                {
-                                    scale: pressNavAnim
-                                },
-                            ],
-                            opacity: fadeNavAnim,
-                        },
-                    ]}
-                >
-                    <Pressable
-                        onPressIn={() => {
-                            pressInNav();
+                {
+                    isMenuVisible &&
+                    <Animated.View
+                        style={{
+                            right: (width / 7),
+                            bottom: (height / 10),
                         }}
-                        onPressOut={() => {
-                            pressOutNav();
-                        }}
-                        onPress={handleNavigationPress}
+                        className='absolute bg-transparent items-center'
                     >
-                        <MaterialIcons
-                            name={location ? 'my-location' : 'location-searching'}
-                            size={50}
-                            color={Colors[colorScheme ?? 'light'].text}
-                        />
-                    </Pressable>
-                </Animated.View>
+
+                        <TouchableWithoutFeedback>
+                            <Animated.View
+                                style={{
+                                    position: "absolute",
+                                    transform:
+                                        [
+                                            {
+                                                scale: navigationAnimValueRef
+                                            },
+                                            {
+                                                translateY: navigationAnimValueRef.interpolate({
+                                                    inputRange: [0, 1],
+                                                    outputRange: [0, -195]
+                                                })
+                                            }
+                                        ]
+                                }}
+                            >
+                                <PressBtn className={'h-14 w-14 justify-center items-center rounded-full border border-zinc-500'}>
+                                    <MaterialIcons
+                                        name={'local-taxi'}
+                                        size={40}
+                                        color={Colors[colorScheme ?? 'light'].text}
+                                    />
+                                </PressBtn>
+                            </Animated.View>
+                        </TouchableWithoutFeedback>
+
+                        <TouchableWithoutFeedback>
+                            <Animated.View
+                                style={{
+                                    position: "absolute",
+                                    transform:
+                                        [
+                                            {
+                                                scale: navigationAnimValueRef
+                                            },
+                                            {
+                                                translateY: navigationAnimValueRef.interpolate({
+                                                    inputRange: [0, 1],
+                                                    outputRange: [0, -130]
+                                                })
+                                            }
+                                        ]
+                                }}
+                            >
+                                <PressBtn
+                                    className={'h-14 w-14 justify-center items-center rounded-full border border-zinc-500'}
+                                    onPress={openUserProfileHandler}
+                                >
+                                    <MaterialIcons
+                                        name={'account-circle'}
+                                        size={40}
+                                        color={Colors[colorScheme ?? 'light'].text}
+                                    />
+                                </PressBtn>
+                            </Animated.View>
+                        </TouchableWithoutFeedback>
+
+                        <TouchableWithoutFeedback>
+                            <Animated.View
+                                style={{
+                                    position: "absolute",
+                                    transform:
+                                        [
+                                            {
+                                                scale: navigationAnimValueRef
+                                            },
+                                            {
+                                                translateY: navigationAnimValueRef.interpolate({
+                                                    inputRange: [0, 1],
+                                                    outputRange: [0, -65]
+                                                })
+                                            }
+                                        ]
+                                }}
+                            >
+                                <PressBtn onPress={addMarkerHandler} className={'h-14 w-14 justify-center items-center rounded-full border border-zinc-500'}>
+                                    <MaterialIcons
+                                        name={'add-location-alt'}
+                                        size={40}
+                                        color={Colors[colorScheme ?? 'light'].text}
+                                    />
+                                </PressBtn>
+                            </Animated.View>
+                        </TouchableWithoutFeedback>
+
+                        <TouchableWithoutFeedback>
+                            <Animated.View
+                                style={{
+                                    transform:
+                                        [
+                                            {
+                                                rotate: navigationAnimValueRef.interpolate({
+                                                    inputRange: [0, 1],
+                                                    outputRange: ['0deg', '135deg']
+                                                }),
+                                            }
+                                        ]
+                                }}
+                            >
+                                <PressBtn onPress={toogleNavMenu} className={' h-16 w-16 justify-center items-center rounded-full border border-zinc-500'}>
+
+                                    <MaterialIcons
+                                        name={'add'}
+                                        size={48}
+                                        color={Colors[colorScheme ?? 'light'].text}
+                                    />
+                                </PressBtn>
+                            </Animated.View>
+                        </TouchableWithoutFeedback>
+
+                    </Animated.View>
+                }
+
 
                 <BottomSheetModal
                     ref={bottomSheetModalRef}
@@ -530,125 +659,3 @@ const MapViewComponent = () => {
 };
 
 export default MapViewComponent
-
-
-function AnimatingPolyline({ pathArray }: { pathArray: LatLng[] }) {
-    const [polylinePath, setPolylinePath] = useState<LatLng[]>(pathArray);
-
-    const animatePolylineStart = () => {
-        if (polylinePath.length < pathArray.length) {
-            setPolylinePath([
-                ...pathArray.slice(0, polylinePath.length - 1)
-            ]);
-        } else {
-            setPolylinePath([])
-        }
-
-        console.log(polylinePath)
-    };
-
-    /* useEffect(() => {
-        const intervalSus = setInterval(() => animatePolylineStart(), 70);
-
-
-        return () => {
-            clearInterval(intervalSus);
-        }
-    }) */
-
-    return (
-        <React.Fragment>
-            {
-                (polylinePath.length > 0) && <Polyline
-                    coordinates={polylinePath}
-                    strokeColor="#484848"
-                    strokeWidth={5}
-
-
-                />
-            }
-        </React.Fragment>
-    )
-}
-
-const getDirections = async (startLoc: string, destinationLoc: string) => {
-    try {
-        const resp = await fetch(
-            `https://maps.googleapis.com/maps/api/directions/json?origin=${startLoc}&destination=${destinationLoc}&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_APIKEY || ""}`
-        );
-        const respJson = await resp.json();
-        const coords = polylineDecode(respJson.routes[0].overview_polyline.points).map((point, index) => ({ latitude: point[0] as number, longitude: point[1] as number }));
-        console.log(coords);
-        return coords;
-    } catch (error) {
-        console.error(error);
-    }
-};
-
-const duplicateCoords = (coords: {
-    latitude: number;
-    longitude: number;
-}[]) => {
-
-    const newCoords: {
-        latitude: number;
-        longitude: number;
-    }[] = [];
-
-    for (let i = 0; i < coords.length - 1; i++) {
-        newCoords.push({ latitude: Number(coords[i]?.latitude), longitude: Number(coords[i]?.longitude) });
-        newCoords.push({ latitude: ((Number(coords[i]?.latitude)) + (Number(coords[i + 1]?.latitude))) / 2, longitude: (Number(coords[i]?.longitude) + Number(coords[i + 1]?.longitude)) / 2 });
-    }
-    return newCoords;
-
-}
-
-function polylineDecode(str: string, precision?: number) {
-    let index = 0,
-        lat = 0,
-        lng = 0,
-        coordinates = [],
-        shift = 0,
-        result = 0,
-        byte = null,
-        latitude_change,
-        longitude_change,
-        factor = Math.pow(10, precision !== undefined ? precision : 5);
-
-    // Coordinates have variable length when encoded, so just keep
-    // track of whether we've hit the end of the string. In each
-    // loop iteration, a single coordinate is decoded.
-    while (index < str.length) {
-
-        // Reset shift, result, and byte
-        byte = null;
-        shift = 1;
-        result = 0;
-
-        do {
-            byte = str.charCodeAt(index++) - 63;
-            result += (byte & 0x1f) * shift;
-            shift *= 32;
-        } while (byte >= 0x20);
-
-        latitude_change = (result & 1) ? ((-result - 1) / 2) : (result / 2);
-
-        shift = 1;
-        result = 0;
-
-        do {
-            byte = str.charCodeAt(index++) - 63;
-            result += (byte & 0x1f) * shift;
-            shift *= 32;
-        } while (byte >= 0x20);
-
-        longitude_change = (result & 1) ? ((-result - 1) / 2) : (result / 2);
-
-        lat += latitude_change;
-        lng += longitude_change;
-
-        coordinates.push([lat / factor, lng / factor]);
-    }
-
-    return coordinates;
-};
