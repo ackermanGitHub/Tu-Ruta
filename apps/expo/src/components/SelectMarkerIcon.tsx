@@ -1,13 +1,21 @@
 import { useState, useRef } from 'react'
-import { type MarkerData } from '../constants/Markers';
+import { Dimensions, LayoutAnimation, Pressable, TouchableWithoutFeedback } from 'react-native';
+
 import { View, Text } from '../styles/Themed';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Dimensions, LayoutAnimation, Pressable, TouchableWithoutFeedback } from 'react-native';
 import { useColorScheme } from 'nativewind';
 import Colors from '../styles/Colors';
-import { useAtom, } from 'jotai';
-import { userMarkersAtom } from './MapView';
 import { PressBtn } from '../styles/PressBtn';
+
+import { useAtom, } from 'jotai';
+import { atomWithStorage, createJSONStorage, } from 'jotai/utils';
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
+
+import { type MarkerData } from '../constants/Markers';
+const storedUserMarkers = createJSONStorage<MarkerData[]>(() => AsyncStorage)
+export const userMarkersAtom = atomWithStorage<MarkerData[]>('userMarkers', [], storedUserMarkers)
+
 
 const selectableMarkerIcons = [
     ["MCI", "airplane-marker"],
@@ -21,15 +29,14 @@ const selectableMarkerIcons = [
 ]
 
 const SelectMarkerIcon: React.FC<{
-    onConfirmFn?: () => void
+    onConfirmFn: () => void
 }> = ({ onConfirmFn }) => {
 
     const { width, height } = Dimensions.get('window');
     const { colorScheme } = useColorScheme();
 
-    const [userMarkers, setUserMarkers] = useAtom(userMarkersAtom)
+    const [userMarkers, _setUserMarkers] = useAtom(userMarkersAtom)
 
-    const [isAddingMarker, setIsAddingMarker] = useState(false);
     const [isSelectMarkerIconOpen, setIsSelectMarkerIconOpen] = useState(false);
     const [selectMarkerWidth, setSelectMarkerWidth] = useState(40);
     const [selectMarkerHeight, setSelectMarkerHeight] = useState(96);
@@ -62,21 +69,6 @@ const SelectMarkerIcon: React.FC<{
         setIsSelectMarkerIconOpen(!isSelectMarkerIconOpen)
         setSelectMarkerWidth(newWidth)
         setSelectMarkerHeight(newHeight)
-    }
-
-    const onConfirm = () => {
-        LayoutAnimation.linear()
-        setIsAddingMarker(false)
-
-        onConfirmFn()
-        /* const getPoint = async () => {
-            const pointCoords = await mapViewRef.current?.coordinateForPoint({
-                x: (width / 2),
-                y: (height / 2),
-            })
-        }
-        void getPoint()
-        setIsMenuVisible(true) */
     }
 
     const onMarkerIconPress = (markerIcon: string[]) => {
@@ -129,6 +121,8 @@ const SelectMarkerIcon: React.FC<{
                         !isSelectMarkerIconOpen &&
                         <>
                             <MaterialCommunityIcons
+                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                // @ts-ignore
                                 name={currentMarkerIconName}
                                 size={28}
                                 color={Colors[colorScheme === 'dark' ? 'light' : 'dark'].text}
@@ -153,6 +147,8 @@ const SelectMarkerIcon: React.FC<{
                                         }}
                                     >
                                         <MaterialCommunityIcons
+                                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                            // @ts-ignore
                                             name={markerIcon[1]}
                                             size={45}
                                             color={Colors[colorScheme === 'dark' ? 'light' : 'dark'].text}
@@ -166,7 +162,7 @@ const SelectMarkerIcon: React.FC<{
             </TouchableWithoutFeedback>
 
             <PressBtn
-                onPress={onConfirm}
+                onPress={onConfirmFn}
                 className={'absolute z-20 bottom-5 h-12 max-[367px]:h-8 w-[200px] max-[367px]:w-[180px] bg-[#FCCB6F] dark:bg-white rounded-3xl justify-center items-center'}
             >
                 <Text darkColor="black" className={'text-white dark:text-black font-bold text-lg max-[367px]:text-base'}>Confirmar</Text>

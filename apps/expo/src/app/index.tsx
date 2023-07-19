@@ -414,7 +414,7 @@ export default function Home() {
                                     />
                                 </PressBtn>
                             </View>
-                        )} label={'Social Networks'} onPress={() => { _setSignMethod('undefined') }} />
+                        )} label={'Social Networks'} onPress={() => { console.log("Social Networks") }} />
 
                     </DrawerContentScrollView>
                 )

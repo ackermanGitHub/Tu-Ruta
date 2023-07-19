@@ -6,87 +6,52 @@ import {
     Switch,
     Dimensions,
     LayoutAnimation,
-    Pressable
+    Pressable,
+    TouchableWithoutFeedback
 } from "react-native";
-import MapViewDirections from 'react-native-maps-directions';
-import {
-    BottomSheetModal,
-    BottomSheetModalProvider,
-} from "@gorhom/bottom-sheet";
+import MapView, { type MapMarker, type Region, PROVIDER_GOOGLE } from 'react-native-maps';
+import { BottomSheetModal, BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { useAtom, } from 'jotai';
+import { useUser } from '@clerk/clerk-expo';
+import { useKeepAwake } from 'expo-keep-awake';
+import { useColorScheme } from 'nativewind';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { NightMap } from '../styles/NightMap';
-import MapView, { type MapMarker, type Region, PROVIDER_GOOGLE, type LatLng, Marker, AnimatedRegion } from 'react-native-maps';
-
-import { type MarkerData } from '../constants/Markers';
 import useMapConnection from '../hooks/useMapConnection';
+import { type MarkerData } from '../constants/Markers';
 
 import { View, Text } from '../styles/Themed';
-import { /*Feather, FontAwesome, */MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
-import Colors from '../styles/Colors';
-// import NetInfo from '@react-native-community/netinfo';
-
-import { useUser } from '@clerk/clerk-expo';
-import { useColorScheme } from 'nativewind';
-
-import { useKeepAwake } from 'expo-keep-awake';
-// import ProfileDropdown from './ProfileDropdown';
 import { PressBtn } from '../styles/PressBtn';
+import Colors from '../styles/Colors';
+import { NightMap } from '../styles/NightMap';
 import UserMarker from '../markers/UserMarker';
 import CarMarker from '../markers/CarMarker';
-import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
-import { useAtom, } from 'jotai';
-import LayoutDropdown from './LayoutDropdown';
 
-import { atomWithStorage, createJSONStorage, } from 'jotai/utils';
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { TouchableWithoutFeedback } from 'react-native';
+import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
+
+import LayoutDropdown from './LayoutDropdown';
+import SelectMarkerIcon from './SelectMarkerIcon';
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
-// "emailAddress": "julio.sergio2709@gmail.com", "id": "idn_2RJhwToHB8RbifJBZlXZ5jWn8D4"
-// Access Token: pk.434c2613d0817ab0dd86813cf59ea6de
-
-const selectableMarkerIcons = [
-    ["MCI", "airplane-marker"],
-    ["MCI", "archive-marker"],
-    ["MCI", "book-marker"],
-    ["MCI", "bus-marker"],
-    ["MCI", "camera-marker"],
-    ["MCI", "cash-marker"],
-    ["MCI", "cellphone-marker"],
-    ["MCI", "credit-card-marker"],
-]
-
 const snapPoints = ["25%", "48%", "75%"];
-
-const origin = { latitude: 23.121715394724493, longitude: -82.38003462553024 };
-const destination = { latitude: 23.1286927367378, longitude: -82.39208780229092 };
-
-const storedIsRouteAnimating = createJSONStorage<'true' | 'false' | 'unknown'>(() => AsyncStorage)
-export const isRouteAnimatingAtom = atomWithStorage<'true' | 'false' | 'unknown'>('isRouteAnimating', "false", storedIsRouteAnimating)
-
-const storedUserMarkers = createJSONStorage<MarkerData[]>(() => AsyncStorage)
-export const userMarkersAtom = atomWithStorage<MarkerData[]>('userMarkers', [], storedUserMarkers)
 
 const MapViewComponent = () => {
 
     useKeepAwake();
     const { colorScheme } = useColorScheme();
     const { user, isLoaded, isSignedIn } = useUser()
-    const { markers, location, heading } = useMapConnection();
     const { width, height } = Dimensions.get('window');
-    const ASPECT_RATIO = width / height;
-    const LATITUDE_DELTA = 0.003;
-    const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
+
+    const { markers, location, heading } = useMapConnection();
 
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [isMenuVisible, setIsMenuVisible] = useState(true)
     const navigationAnimValueRef = useRef(new Animated.Value(0)).current;
 
-    const [userMarkers, setUserMarkers] = useAtom(userMarkersAtom)
+    // const [userMarkers, setUserMarkers] = useAtom(userMarkersAtom)
     const [profileRole, _setProfileRole] = useAtom(profileRoleAtom)
     const [profileState, setProfileState] = useAtom(profileStateAtom)
-    // const [isRouteAnimating, setIsRouteAnimating] = useAtom(isRouteAnimatingAtom)
 
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const [userSelected, setUserSelected] = useState(true);
@@ -99,31 +64,6 @@ const MapViewComponent = () => {
     const [_isModalVisible, setIsModalVisible] = useState(false);
 
     const [isAddingMarker, setIsAddingMarker] = useState(false);
-    const [isSelectMarkerIconOpen, setIsSelectMarkerIconOpen] = useState(false);
-    const [selectMarkerWidth, setSelectMarkerWidth] = useState(40);
-    const [selectMarkerHeight, setSelectMarkerHeight] = useState(96);
-    const addingMarkerDataRef = useRef<MarkerData | null>(null);
-
-
-    const [animRoute, _setAnimRoute] = useState<LatLng[]>([])
-
-    const [route_count, set_route_count] = useState(0);
-    const anim_route_marker_ref = useRef<MapMarker | null>(null)
-
-    const [anim_route_marker, _set_anim_route_marker] = useState({
-        cur_loc: {
-            latitude: 23.1218644,
-            longitude: -82.32806211,
-        },
-        destination_cords: {},
-        is_loading: false,
-        coordinate: new AnimatedRegion({
-            latitude: 23.1218644,
-            longitude: -82.32806211,
-            latitudeDelta: LATITUDE_DELTA,
-            longitudeDelta: LONGITUDE_DELTA
-        })
-    })
 
     useEffect(() => {
         if (selectedMarkerIndex !== null && mapViewRef.current) {
@@ -167,15 +107,6 @@ const MapViewComponent = () => {
         setIsModalVisible(true);
     }
 
-    const openUserProfileHandler = () => {
-        bottomSheetModalRef.current?.present();
-        setUserSelected(true)
-        setIsModalVisible(true);
-        if (isMenuOpen) {
-            toggleNavMenu()
-        }
-    }
-
     const toggleNavMenu = () => {
         const toValue = isMenuOpen ? 0 : 1
         setIsMenuOpen(!isMenuOpen)
@@ -188,6 +119,7 @@ const MapViewComponent = () => {
 
     }
 
+    // Add marker functionality
     const addMarkerHandler = () => {
         LayoutAnimation.linear()
         setIsMenuVisible(false)
@@ -196,29 +128,29 @@ const MapViewComponent = () => {
             toggleNavMenu()
         }
     }
+    const confirmAddMarkerIcon = () => {
+        LayoutAnimation.linear()
+        setIsAddingMarker(false)
 
-    const toggleSelectMarkerIcon = () => {
-        LayoutAnimation.configureNext({
-            duration: 300,
-            update: {
-                type: 'easeInEaseOut',
-                property: 'scaleXY',
-            },
-            create: {
-                type: 'easeInEaseOut',
-                property: 'scaleXY',
-            },
-            delete: {
-                type: 'easeInEaseOut',
-                property: 'scaleXY',
-            },
-        })
-        const newWidth = isSelectMarkerIconOpen ? 40 : 136;
-        const newHeight = isSelectMarkerIconOpen ? 96 : 216;
+        const getPoint = async () => {
+            const pointCoords = await mapViewRef.current?.coordinateForPoint({
+                x: (width / 2),
+                y: (height / 2),
+            })
+            console.log(pointCoords);
+        }
 
-        setIsSelectMarkerIconOpen(!isSelectMarkerIconOpen)
-        setSelectMarkerWidth(newWidth)
-        setSelectMarkerHeight(newHeight)
+        void getPoint()
+        setIsMenuVisible(true)
+    }
+
+    const openUserProfileHandler = () => {
+        bottomSheetModalRef.current?.present();
+        setUserSelected(true)
+        setIsModalVisible(true);
+        if (isMenuOpen) {
+            toggleNavMenu()
+        }
     }
 
     return (
@@ -257,133 +189,11 @@ const MapViewComponent = () => {
 
                     {location && <UserMarker onPress={openUserProfileHandler} coordinate={location.coords} description='' title='' userId='' heading={heading} />}
 
-                    <Marker coordinate={{
-                        latitude: 23.118371667346942,
-                        longitude: -82.38046813756227
-                    }} />
-                    {
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        /* @ts-ignore */
-                        animRoute.length > 0 && <Marker.Animated onPress={() => { }} coordinate={anim_route_marker.coordinate} ref={anim_route_marker_ref} />
-                    }
-
-                    {/* <AnimatingPolyline pathArray={animRoute} /> */}
-
-                    <MapViewDirections
-                        origin={origin}
-                        destination={destination}
-                        apikey={process.env.EXPO_PUBLIC_GOOGLE_MAPS_APIKEY || ""}
-                        strokeWidth={3}
-                        strokeColor={'black'}
-                        mode='DRIVING'
-                        precision='high'
-                    />
                 </MapView>
 
                 {
                     isAddingMarker &&
-                    <>
-                        <View
-                            style={{
-                                right: (width / 2) - 24,
-                                top: (height / 2) - 48,
-                            }}
-                            className='absolute bg-transparent h-12 w-12 overflow-hidden justify-end items-center'
-                        >
-                            <MaterialIcons
-                                name={'location-pin'}
-                                size={48}
-                                color={Colors[colorScheme ?? 'light'].text}
-                            />
-                        </View>
-                        {
-                            isSelectMarkerIconOpen &&
-                            <Pressable onPress={toggleSelectMarkerIcon} className='absolute w-full h-full z-10'>
-
-                            </Pressable>
-                        }
-                        <TouchableWithoutFeedback>
-                            <Pressable
-                                onPress={!isSelectMarkerIconOpen ? toggleSelectMarkerIcon : undefined}
-                                className={'absolute z-20 bottom-24 bg-black dark:bg-white rounded-3xl flex-row items-center'}
-                                style={{
-                                    height: selectMarkerWidth,
-                                    width: selectMarkerHeight,
-                                    justifyContent: isSelectMarkerIconOpen ? 'center' : 'space-evenly',
-                                    flexWrap: isSelectMarkerIconOpen ? 'wrap' : 'nowrap',
-                                    flexDirection: isSelectMarkerIconOpen ? 'column' : 'row',
-                                    gap: isSelectMarkerIconOpen ? 6 : 0,
-                                    padding: isSelectMarkerIconOpen ? 8 : 0,
-                                }}
-                            >
-                                {
-                                    !isSelectMarkerIconOpen &&
-                                    <>
-                                        <MaterialCommunityIcons
-                                            name={addingMarkerDataRef.current?.icon ? addingMarkerDataRef.current?.icon[1] : selectableMarkerIcons.find((markerIcon) => !userMarkers.some((marker) => marker.icon !== markerIcon))?.[1]}
-                                            size={28}
-                                            color={Colors[colorScheme === 'dark' ? 'light' : 'dark'].text}
-                                        />
-                                        <MaterialIcons
-                                            name={'arrow-drop-up'}
-                                            size={24}
-                                            color={Colors[colorScheme === 'dark' ? 'light' : 'dark'].text}
-                                        />
-                                    </>
-                                }
-                                {
-                                    isSelectMarkerIconOpen &&
-                                    <>
-                                        {selectableMarkerIcons.map((markerIcon) => {
-                                            return (
-                                                <Pressable
-                                                    key={markerIcon[1]}
-                                                    onPress={() => {
-                                                        addingMarkerDataRef.current = {
-                                                            coordinate: {
-                                                                latitude: 69.420,
-                                                                longitude: 69.420,
-                                                            },
-                                                            icon: markerIcon
-                                                        }
-                                                        toggleSelectMarkerIcon()
-                                                    }}
-                                                    style={{
-                                                        display: isSelectMarkerIconOpen ? 'flex' : 'none'
-                                                    }}
-                                                >
-                                                    <MaterialCommunityIcons
-                                                        name={markerIcon[1]}
-                                                        size={45}
-                                                        color={Colors[colorScheme === 'dark' ? 'light' : 'dark'].text}
-                                                    />
-                                                </Pressable>
-                                            )
-                                        })}
-                                    </>
-                                }
-                            </Pressable>
-                        </TouchableWithoutFeedback>
-
-                        <PressBtn
-                            onPress={() => {
-                                const getPoint = async () => {
-                                    const pointCoords = await mapViewRef.current?.coordinateForPoint({
-                                        x: (width / 2),
-                                        y: (height / 2),
-                                    })
-                                }
-                                void getPoint()
-                                LayoutAnimation.linear()
-                                setIsAddingMarker(false)
-                                setIsMenuVisible(true)
-                            }}
-                            className={'absolute z-20 bottom-5 h-12 max-[367px]:h-8 w-[200px] max-[367px]:w-[180px] bg-[#FCCB6F] dark:bg-white rounded-3xl justify-center items-center'}
-                        >
-                            <Text darkColor="black" className={'text-white dark:text-black font-bold text-lg max-[367px]:text-base'}>Confirmar</Text>
-                        </PressBtn>
-
-                    </>
+                    <SelectMarkerIcon onConfirmFn={confirmAddMarkerIcon} />
                 }
 
                 {

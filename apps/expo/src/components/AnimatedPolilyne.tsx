@@ -3,7 +3,7 @@ import { useState } from "react";
 import { type LatLng, Polyline } from "react-native-maps";
 
 
-export default function AnimatingPolyline({ pathArray }: { pathArray: LatLng[] }) {
+export default function AnimatedPolyline({ pathArray }: { pathArray: LatLng[] }) {
     const [polylinePath, setPolylinePath] = useState<LatLng[]>(pathArray);
 
     const animatePolylineStart = () => {
@@ -25,6 +25,7 @@ export default function AnimatingPolyline({ pathArray }: { pathArray: LatLng[] }
         return () => {
             clearInterval(intervalSus);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     return (
