@@ -1,13 +1,12 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Image,
     Animated,
     StatusBar,
     Switch,
-    Platform,
     Dimensions,
-    Easing,
-    LayoutAnimation
+    LayoutAnimation,
+    Pressable
 } from "react-native";
 import MapViewDirections from 'react-native-maps-directions';
 import {
@@ -47,6 +46,17 @@ void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE
 // "emailAddress": "julio.sergio2709@gmail.com", "id": "idn_2RJhwToHB8RbifJBZlXZ5jWn8D4"
 // Access Token: pk.434c2613d0817ab0dd86813cf59ea6de
 
+const selectableMarkerIcons = [
+    ["MCI", "airplane-marker"],
+    ["MCI", "archive-marker"],
+    ["MCI", "book-marker"],
+    ["MCI", "bus-marker"],
+    ["MCI", "camera-marker"],
+    ["MCI", "cash-marker"],
+    ["MCI", "cellphone-marker"],
+    ["MCI", "credit-card-marker"],
+]
+
 const snapPoints = ["25%", "48%", "75%"];
 
 const origin = { latitude: 23.121715394724493, longitude: -82.38003462553024 };
@@ -59,6 +69,15 @@ const storedUserMarkers = createJSONStorage<MarkerData[]>(() => AsyncStorage)
 export const userMarkersAtom = atomWithStorage<MarkerData[]>('userMarkers', [], storedUserMarkers)
 
 const MapViewComponent = () => {
+
+    useKeepAwake();
+    const { colorScheme } = useColorScheme();
+    const { user, isLoaded, isSignedIn } = useUser()
+    const { markers, location, heading } = useMapConnection();
+    const { width, height } = Dimensions.get('window');
+    const ASPECT_RATIO = width / height;
+    const LATITUDE_DELTA = 0.003;
+    const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [isMenuVisible, setIsMenuVisible] = useState(true)
@@ -76,21 +95,15 @@ const MapViewComponent = () => {
     const mapViewRef = useRef<MapView>(null);
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
-    const { user, isLoaded, isSignedIn } = useUser()
-    const { colorScheme } = useColorScheme();
-    useKeepAwake();
 
     const [_isModalVisible, setIsModalVisible] = useState(false);
 
     const [isAddingMarker, setIsAddingMarker] = useState(false);
-    const addingMarkerDataRef = useRef<MarkerData & { coords: LatLng } | null>(null);
+    const [isSelectMarkerIconOpen, setIsSelectMarkerIconOpen] = useState(false);
+    const [selectMarkerWidth, setSelectMarkerWidth] = useState(40);
+    const [selectMarkerHeight, setSelectMarkerHeight] = useState(96);
+    const addingMarkerDataRef = useRef<MarkerData | null>(null);
 
-    const { markers, location, heading } = useMapConnection();
-
-    const { width, height } = Dimensions.get('window');
-    const ASPECT_RATIO = width / height;
-    const LATITUDE_DELTA = 0.003;
-    const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
     const [animRoute, _setAnimRoute] = useState<LatLng[]>([])
 
@@ -112,70 +125,6 @@ const MapViewComponent = () => {
         })
     })
 
-    const getLiveLocation = useCallback(() => {
-        console.log('locationCount: ', animRoute.length + ' - ' + 'count: ', route_count);
-        if (animRoute.length !== route_count) {
-
-            const latitude = animRoute[route_count + 1]?.latitude;
-            const longitude = animRoute[route_count + 1]?.longitude;
-            set_route_count(route_count + 1)
-
-            if (!latitude || !longitude) {
-                return
-            }
-
-            console.log('latitude  ', latitude);
-            console.log('longitude  ', longitude);
-
-            animate(latitude, longitude);
-
-        } else {
-            set_route_count(0)
-        }
-    }, [animRoute, route_count])
-
-    const animate = (latitude: number, longitude: number) => {
-        const newCoordinate = { latitude, longitude };
-
-        if (Platform.OS == 'android') {
-            if (anim_route_marker_ref.current) {
-                // anim_route_marker_ref.current.animateMarkerToCoordinate(newCoordinate, 7000)
-                // anim_route_marker.coordinate.timing({ ...newCoordinate, duration: 2000 }).start();
-
-                anim_route_marker.coordinate.timing({
-                    ...newCoordinate, duration: 2000, easing: Easing.linear,
-                    toValue: 0,
-                    useNativeDriver: false,
-                    latitudeDelta: 0,
-                    longitudeDelta: 0
-                }).start();
-                console.log("animateMarkerToCoordinate")
-            }
-        } else {
-            anim_route_marker.coordinate.timing({
-                ...newCoordinate, duration: 2000, easing: Easing.linear,
-                toValue: 0,
-                useNativeDriver: false,
-                latitudeDelta: 0,
-                longitudeDelta: 0
-            }).start();
-        }
-
-        // anim_route_marker.coordinate.timing({ ...newCoordinate, duration: 2000 }).start();
-
-        /* set_anim_route_marker({
-            ...anim_route_marker,
-            cur_loc: { latitude, longitude },
-            coordinate: new AnimatedRegion({
-                latitude: latitude,
-                longitude: longitude,
-                latitudeDelta: LATITUDE_DELTA,
-                longitudeDelta: LONGITUDE_DELTA
-            })
-
-        }) */
-    }
-
     useEffect(() => {
         if (selectedMarkerIndex !== null && mapViewRef.current) {
             const selectedMarker = markers[selectedMarkerIndex];
@@ -188,12 +137,6 @@ const MapViewComponent = () => {
                 });
             }
         }
-
-        /* void (async () => {
-            const newDirection = await getDirections("23.1218644,-82.32806211", "23.1118644,-82.31806211")
-            setAnimRoute(newDirection === undefined ? [] : newDirection)
-        }
-        )() */
 
     }, [markers, selectedMarkerIndex]);
 
@@ -219,19 +162,6 @@ const MapViewComponent = () => {
         }
     };
 
-    const handleNavigationPress = () => {
-        // openUserProfileHandler()
-        // getLiveLocation()
-        if (location) {
-            animateToRegion({
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-                longitudeDelta: 0.0033333,
-                latitudeDelta: 0.0033333,
-            });
-        }
-    };
-
     const handlePresentModal = () => {
         bottomSheetModalRef.current?.present();
         setIsModalVisible(true);
@@ -242,12 +172,11 @@ const MapViewComponent = () => {
         setUserSelected(true)
         setIsModalVisible(true);
         if (isMenuOpen) {
-            toogleNavMenu()
+            toggleNavMenu()
         }
     }
 
-    const toogleNavMenu = () => {
-
+    const toggleNavMenu = () => {
         const toValue = isMenuOpen ? 0 : 1
         setIsMenuOpen(!isMenuOpen)
 
@@ -264,8 +193,32 @@ const MapViewComponent = () => {
         setIsMenuVisible(false)
         setIsAddingMarker(!isAddingMarker)
         if (isMenuOpen) {
-            toogleNavMenu()
+            toggleNavMenu()
         }
+    }
+
+    const toggleSelectMarkerIcon = () => {
+        LayoutAnimation.configureNext({
+            duration: 300,
+            update: {
+                type: 'easeInEaseOut',
+                property: 'scaleXY',
+            },
+            create: {
+                type: 'easeInEaseOut',
+                property: 'scaleXY',
+            },
+            delete: {
+                type: 'easeInEaseOut',
+                property: 'scaleXY',
+            },
+        })
+        const newWidth = isSelectMarkerIconOpen ? 40 : 136;
+        const newHeight = isSelectMarkerIconOpen ? 96 : 216;
+
+        setIsSelectMarkerIconOpen(!isSelectMarkerIconOpen)
+        setSelectMarkerWidth(newWidth)
+        setSelectMarkerHeight(newHeight)
     }
 
     return (
@@ -338,52 +291,98 @@ const MapViewComponent = () => {
                             className='absolute bg-transparent h-12 w-12 overflow-hidden justify-end items-center'
                         >
                             <MaterialIcons
-                                name={'location-on'}
+                                name={'location-pin'}
                                 size={48}
                                 color={Colors[colorScheme ?? 'light'].text}
                             />
                         </View>
+                        {
+                            isSelectMarkerIconOpen &&
+                            <Pressable onPress={toggleSelectMarkerIcon} className='absolute w-full h-full z-10'>
 
-                        <View
-                            style={{
-                                right: (width / 2) - (width >= 367 ? 100 : 90),
-                            }}
-                            className='h-24 bg-transparent absolute bottom-5 items-center justify-between'
-                        >
-                            <PressBtn
-                                onPress={() => { }}
-                                className={'h-10 w-24 max-[367px]:h-8 bg-black dark:bg-white rounded-3xl flex-row justify-evenly items-center'}
-                            >
-                                <MaterialIcons
-                                    name={'work'}
-                                    size={28}
-                                    color={Colors[colorScheme === 'dark' ? 'light' : 'dark'].text}
-                                />
-                                <MaterialIcons
-                                    name={'arrow-drop-up'}
-                                    size={24}
-                                    color={Colors[colorScheme === 'dark' ? 'light' : 'dark'].text}
-                                />
-                            </PressBtn>
-
-                            <PressBtn
-                                onPress={() => {
-                                    const getPoint = async () => {
-                                        const pointCoords = await mapViewRef.current?.coordinateForPoint({
-                                            x: (width / 2),
-                                            y: (height / 2),
-                                        })
-                                    }
-                                    void getPoint()
-                                    LayoutAnimation.linear()
-                                    setIsAddingMarker(false)
-                                    setIsMenuVisible(true)
+                            </Pressable>
+                        }
+                        <TouchableWithoutFeedback>
+                            <Pressable
+                                onPress={!isSelectMarkerIconOpen ? toggleSelectMarkerIcon : undefined}
+                                className={'absolute z-20 bottom-24 bg-black dark:bg-white rounded-3xl flex-row items-center'}
+                                style={{
+                                    height: selectMarkerWidth,
+                                    width: selectMarkerHeight,
+                                    justifyContent: isSelectMarkerIconOpen ? 'center' : 'space-evenly',
+                                    flexWrap: isSelectMarkerIconOpen ? 'wrap' : 'nowrap',
+                                    flexDirection: isSelectMarkerIconOpen ? 'column' : 'row',
+                                    gap: isSelectMarkerIconOpen ? 6 : 0,
+                                    padding: isSelectMarkerIconOpen ? 8 : 0,
                                 }}
-                                className={'h-12 max-[367px]:h-8 w-[200px] max-[367px]:w-[180px] bg-[#FCCB6F] dark:bg-white rounded-3xl justify-center items-center'}
                             >
-                                <Text darkColor="black" className={'text-white dark:text-black font-bold text-lg max-[367px]:text-base'}>Confirmar</Text>
-                            </PressBtn>
-                        </View>
+                                {
+                                    !isSelectMarkerIconOpen &&
+                                    <>
+                                        <MaterialCommunityIcons
+                                            name={addingMarkerDataRef.current?.icon ? addingMarkerDataRef.current?.icon[1] : selectableMarkerIcons.find((markerIcon) => !userMarkers.some((marker) => marker.icon !== markerIcon))?.[1]}
+                                            size={28}
+                                            color={Colors[colorScheme === 'dark' ? 'light' : 'dark'].text}
+                                        />
+                                        <MaterialIcons
+                                            name={'arrow-drop-up'}
+                                            size={24}
+                                            color={Colors[colorScheme === 'dark' ? 'light' : 'dark'].text}
+                                        />
+                                    </>
+                                }
+                                {
+                                    isSelectMarkerIconOpen &&
+                                    <>
+                                        {selectableMarkerIcons.map((markerIcon) => {
+                                            return (
+                                                <Pressable
+                                                    key={markerIcon[1]}
+                                                    onPress={() => {
+                                                        addingMarkerDataRef.current = {
+                                                            coordinate: {
+                                                                latitude: 69.420,
+                                                                longitude: 69.420,
+                                                            },
+                                                            icon: markerIcon
+                                                        }
+                                                        toggleSelectMarkerIcon()
+                                                    }}
+                                                    style={{
+                                                        display: isSelectMarkerIconOpen ? 'flex' : 'none'
+                                                    }}
+                                                >
+                                                    <MaterialCommunityIcons
+                                                        name={markerIcon[1]}
+                                                        size={45}
+                                                        color={Colors[colorScheme === 'dark' ? 'light' : 'dark'].text}
+                                                    />
+                                                </Pressable>
+                                            )
+                                        })}
+                                    </>
+                                }
+                            </Pressable>
+                        </TouchableWithoutFeedback>
+
+                        <PressBtn
+                            onPress={() => {
+                                const getPoint = async () => {
+                                    const pointCoords = await mapViewRef.current?.coordinateForPoint({
+                                        x: (width / 2),
+                                        y: (height / 2),
+                                    })
+                                }
+                                void getPoint()
+                                LayoutAnimation.linear()
+                                setIsAddingMarker(false)
+                                setIsMenuVisible(true)
+                            }}
+                            className={'absolute z-20 bottom-5 h-12 max-[367px]:h-8 w-[200px] max-[367px]:w-[180px] bg-[#FCCB6F] dark:bg-white rounded-3xl justify-center items-center'}
+                        >
+                            <Text darkColor="black" className={'text-white dark:text-black font-bold text-lg max-[367px]:text-base'}>Confirmar</Text>
+                        </PressBtn>
+
                     </>
                 }
 
@@ -498,14 +497,14 @@ const MapViewComponent = () => {
                                         ]
                                 }}
                             >
-                                <PressBtn onPress={toogleNavMenu} className={' h-16 w-16 justify-center items-center rounded-full border border-zinc-500'}>
+                                <Pressable onPress={toggleNavMenu} className={' h-16 w-16 justify-center items-center rounded-full border border-zinc-500'}>
 
                                     <MaterialIcons
                                         name={'add'}
                                         size={48}
                                         color={Colors[colorScheme ?? 'light'].text}
                                     />
-                                </PressBtn>
+                                </Pressable>
                             </Animated.View>
                         </TouchableWithoutFeedback>
 

@@ -33,7 +33,6 @@ const LayoutDropdown = () => {
     const [height, setHeight] = useState(32);
 
     const handleOpenDropdown = () => {
-        setIsOpen(true)
         LayoutAnimation.configureNext({
             duration: 300,
             update: {
@@ -42,36 +41,29 @@ const LayoutDropdown = () => {
             },
             create: {
                 type: 'easeInEaseOut',
-                property: 'scaleXY',
-            },
-            delete: {
-                type: 'easeInEaseOut',
-                property: 'scaleXY',
+                property: 'opacity',
             },
         })
+        setIsOpen(true)
         setWidth(150)
         setHeight(150)
     };
 
     const handleCloseDropdown = () => {
         LayoutAnimation.configureNext({
-            duration: 200,
+            duration: 300,
             update: {
-                type: 'easeOut',
-                property: 'opacity',
-            },
-            create: {
-                type: 'easeOut',
-                property: 'opacity',
+                type: 'easeInEaseOut',
+                property: 'scaleXY',
             },
             delete: {
-                type: 'easeOut',
+                type: 'easeInEaseOut',
                 property: 'opacity',
             },
         })
+        setIsOpen(false)
         setWidth(32)
         setHeight(32)
-        setIsOpen(false)
     };
 
     const handleOpenLoading = () => {

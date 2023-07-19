@@ -13,6 +13,10 @@ export interface MarkerData {
     description?: string;
     imageURL?: string;
     userId?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    id?: string;
+    icon?: string[];
 }
 
 export const initialMarkers: MarkerData[] = [
