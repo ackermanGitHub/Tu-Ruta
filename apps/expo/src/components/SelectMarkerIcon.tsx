@@ -11,25 +11,62 @@ import { useAtom, } from 'jotai';
 import { atomWithStorage, createJSONStorage, } from 'jotai/utils';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-
-import { type MarkerData } from '../constants/Markers';
-const storedUserMarkers = createJSONStorage<MarkerData[]>(() => AsyncStorage)
-export const userMarkersAtom = atomWithStorage<MarkerData[]>('userMarkers', [], storedUserMarkers)
+const storedUserMarkers = createJSONStorage<UserMarkerIcon[]>(() => AsyncStorage)
+export const userMarkersAtom = atomWithStorage<UserMarkerIcon[]>('userMarkers', [], storedUserMarkers)
 
 
 const selectableMarkerIcons = [
-    ["MCI", "airplane-marker"],
-    ["MCI", "archive-marker"],
-    ["MCI", "book-marker"],
-    ["MCI", "bus-marker"],
-    ["MCI", "camera-marker"],
-    ["MCI", "cash-marker"],
-    ["MCI", "cellphone-marker"],
-    ["MCI", "credit-card-marker"],
+    {
+        type: "MCI",
+        name: "airplane-marker"
+    },
+    {
+        type: "MCI",
+        name: "archive-marker"
+    },
+    {
+        type: "MCI",
+        name: "book-marker"
+    },
+    {
+        type: "MCI",
+        name: "bus-marker"
+    },
+    {
+        type: "MCI",
+        name: "camera-marker"
+    },
+    {
+        type: "MCI",
+        name: "cash-marker"
+    },
+    {
+        type: "MCI",
+        name: "cellphone-marker"
+    },
+    {
+        type: "MCI",
+        name: "credit-card-marker"
+    }
 ]
 
+export type UserMarkerIcon = {
+    name: string,
+    description?: string,
+    icon: {
+        type: string,
+        name: string,
+        color?: string,
+        size?: number,
+    },
+    coords: {
+        latitude: number,
+        longitude: number
+    }
+}
+
 const SelectMarkerIcon: React.FC<{
-    onConfirmFn: () => void
+    onConfirmFn: (newMarker: UserMarkerIcon) => void
 }> = ({ onConfirmFn }) => {
 
     const { width, height } = Dimensions.get('window');
@@ -40,12 +77,17 @@ const SelectMarkerIcon: React.FC<{
     const [isSelectMarkerIconOpen, setIsSelectMarkerIconOpen] = useState(false);
     const [selectMarkerWidth, setSelectMarkerWidth] = useState(40);
     const [selectMarkerHeight, setSelectMarkerHeight] = useState(96);
-    const addingMarkerDataRef = useRef<MarkerData | null>(null);
-
-    const currentMarkerIconName =
-        addingMarkerDataRef.current?.icon
-            ? addingMarkerDataRef.current?.icon[1]
-            : selectableMarkerIcons.find(markerIcon => !userMarkers.some(marker => marker.icon !== markerIcon))?.[1]
+    const addingMarkerDataRef = useRef<UserMarkerIcon>({
+        coords: {
+            latitude: 69.420,
+            longitude: 69.420
+        },
+        icon: selectableMarkerIcons.find(markerIcon => !userMarkers.some(marker => marker.icon.name === markerIcon.name)) || {
+            type: "MCI",
+            name: "airplane-marker"
+        },
+        name: "undefined"
+    });
 
     const toggleSelectMarkerIcon = () => {
         LayoutAnimation.configureNext({
@@ -71,15 +113,20 @@ const SelectMarkerIcon: React.FC<{
         setSelectMarkerHeight(newHeight)
     }
 
-    const onMarkerIconPress = (markerIcon: string[]) => {
+    const onMarkerIconPress = (markerIcon: { type: string; name: string; }) => {
         addingMarkerDataRef.current = {
-            coordinate: {
+            icon: markerIcon,
+            name: markerIcon.name,
+            coords: {
                 latitude: 69.420,
-                longitude: 69.420,
-            },
-            icon: markerIcon
+                longitude: 69.420
+            }
         }
         toggleSelectMarkerIcon()
+    }
+
+    const onConfirmInternal = () => {
+        onConfirmFn(addingMarkerDataRef.current);
     }
 
     return (
@@ -123,7 +170,7 @@ const SelectMarkerIcon: React.FC<{
                             <MaterialCommunityIcons
                                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                 // @ts-ignore
-                                name={currentMarkerIconName}
+                                name={addingMarkerDataRef.current.icon.name}
                                 size={28}
                                 color={Colors[colorScheme === 'dark' ? 'light' : 'dark'].text}
                             />
@@ -140,7 +187,7 @@ const SelectMarkerIcon: React.FC<{
                             {selectableMarkerIcons.map((markerIcon) => {
                                 return (
                                     <Pressable
-                                        key={markerIcon[1]}
+                                        key={markerIcon.name}
                                         onPress={() => { onMarkerIconPress(markerIcon) }}
                                         style={{
                                             display: isSelectMarkerIconOpen ? 'flex' : 'none'
@@ -149,7 +196,7 @@ const SelectMarkerIcon: React.FC<{
                                         <MaterialCommunityIcons
                                             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                                             // @ts-ignore
-                                            name={markerIcon[1]}
+                                            name={markerIcon.name}
                                             size={45}
                                             color={Colors[colorScheme === 'dark' ? 'light' : 'dark'].text}
                                         />
@@ -162,7 +209,7 @@ const SelectMarkerIcon: React.FC<{
             </TouchableWithoutFeedback>
 
             <PressBtn
-                onPress={onConfirmFn}
+                onPress={onConfirmInternal}
                 className={'absolute z-20 bottom-5 h-12 max-[367px]:h-8 w-[200px] max-[367px]:w-[180px] bg-[#FCCB6F] dark:bg-white rounded-3xl justify-center items-center'}
             >
                 <Text darkColor="black" className={'text-white dark:text-black font-bold text-lg max-[367px]:text-base'}>Confirmar</Text>

@@ -7,15 +7,16 @@ import {
     Dimensions,
     LayoutAnimation,
     Pressable,
-    TouchableWithoutFeedback
+    TouchableWithoutFeedback,
 } from "react-native";
-import MapView, { type MapMarker, type Region, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { type MapMarker, type Region, PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import { BottomSheetModal, BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { useAtom, } from 'jotai';
 import { useUser } from '@clerk/clerk-expo';
 import { useKeepAwake } from 'expo-keep-awake';
 import { useColorScheme } from 'nativewind';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { TabView, SceneMap } from 'react-native-tab-view';
 
 import useMapConnection from '../hooks/useMapConnection';
 import { type MarkerData } from '../constants/Markers';
@@ -28,6 +29,7 @@ import UserMarker from '../markers/UserMarker';
 import CarMarker from '../markers/CarMarker';
 
 import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
+import { type UserMarkerIcon, userMarkersAtom } from './SelectMarkerIcon';
 
 import LayoutDropdown from './LayoutDropdown';
 import SelectMarkerIcon from './SelectMarkerIcon';
@@ -35,6 +37,28 @@ import SelectMarkerIcon from './SelectMarkerIcon';
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
 const snapPoints = ["25%", "48%", "75%"];
+
+const FirstRoute = () => {
+    return (
+        (
+            <View style={{ flex: 1, backgroundColor: '#ff4081' }} />
+        )
+    )
+}
+
+const MarkersProfileTab = () => {
+    const { colorScheme } = useColorScheme();
+    return (
+        (
+            <View style={{ flex: 1, backgroundColor: colorScheme === 'light' ? 'white' : 'black' }} />
+        )
+    )
+}
+
+const renderScene = SceneMap({
+    first: FirstRoute,
+    second: MarkersProfileTab,
+});
 
 const MapViewComponent = () => {
 
@@ -49,7 +73,7 @@ const MapViewComponent = () => {
     const [isMenuVisible, setIsMenuVisible] = useState(true)
     const navigationAnimValueRef = useRef(new Animated.Value(0)).current;
 
-    // const [userMarkers, setUserMarkers] = useAtom(userMarkersAtom)
+    const [userMarkers, setUserMarkers] = useAtom(userMarkersAtom)
     const [profileRole, _setProfileRole] = useAtom(profileRoleAtom)
     const [profileState, setProfileState] = useAtom(profileStateAtom)
 
@@ -64,6 +88,12 @@ const MapViewComponent = () => {
     const [_isModalVisible, setIsModalVisible] = useState(false);
 
     const [isAddingMarker, setIsAddingMarker] = useState(false);
+
+    const [index, setIndex] = React.useState(0);
+    const [routes] = React.useState([
+        { key: 'first', title: 'First' },
+        { key: 'second', title: 'Second' },
+    ]);
 
     useEffect(() => {
         if (selectedMarkerIndex !== null && mapViewRef.current) {
@@ -128,7 +158,7 @@ const MapViewComponent = () => {
             toggleNavMenu()
         }
     }
-    const confirmAddMarkerIcon = () => {
+    const confirmAddMarkerIcon = (newMarker: UserMarkerIcon) => {
         LayoutAnimation.linear()
         setIsAddingMarker(false)
 
@@ -137,7 +167,19 @@ const MapViewComponent = () => {
                 x: (width / 2),
                 y: (height / 2),
             })
-            console.log(pointCoords);
+
+            if (!pointCoords) {
+                throw new Error('Trouble colecting the coordinates')
+            }
+
+            await setUserMarkers([...userMarkers, {
+                coords: {
+                    latitude: pointCoords.latitude,
+                    longitude: pointCoords.longitude,
+                },
+                icon: newMarker.icon,
+                name: newMarker.name
+            }])
         }
 
         void getPoint()
@@ -186,6 +228,26 @@ const MapViewComponent = () => {
                             <CarMarker key={index} onPress={() => handleMarkerPress(index)} coordinate={marker.coordinate} description='' title='' imageURL='' />
                         );
                     })}
+
+                    {
+                        userMarkers.map((userMarker, index) => {
+                            return (
+                                <Marker
+                                    coordinate={userMarker.coords}
+                                    key={index}
+
+                                >
+                                    <MaterialCommunityIcons
+                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                        // @ts-ignore
+                                        name={userMarker.icon.name}
+                                        size={28}
+                                        color={Colors[colorScheme ?? 'light'].text}
+                                    />
+                                </Marker>
+                            )
+                        })
+                    }
 
                     {location && <UserMarker onPress={openUserProfileHandler} coordinate={location.coords} description='' title='' userId='' heading={heading} />}
 
@@ -321,8 +383,8 @@ const MapViewComponent = () => {
                     </Animated.View>
                 }
 
-
                 <BottomSheetModal
+                    enableContentPanningGesture={false}
                     ref={bottomSheetModalRef}
                     index={1}
                     snapPoints={snapPoints}
@@ -370,12 +432,6 @@ const MapViewComponent = () => {
                                     </View>
                                 </View>
 
-                                <View className={'w-full mt-2 justify-start flex-row bg-transparent'}>
-                                    <View className='bg-transparent h-full justify-start mx-5'>
-                                        <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ipsum recusandae similique, at porro quisquam enim officiis nam iure, tempora perspiciatis laborum ducimus fugiat voluptatibus eum saepe cumqu</Text>
-                                    </View>
-                                </View>
-
                             </View>
                         )}
 
@@ -406,28 +462,14 @@ const MapViewComponent = () => {
                                 <View className={'w-full h-20 justify-between flex-row bg-transparent'}>
                                     <View className='bg-transparent h-full justify-end ml-5'>
                                         <View className='bg-transparent'>
-                                            <View className='absolute -top-2 -right-4 rounded-full justify-center items-center'>
-                                                <MaterialIcons
-                                                    name='edit'
-                                                    size={16}
-                                                    color={Colors[colorScheme ?? 'light'].text}
-                                                />
-                                            </View>
                                             <Text className='font-bold text-lg'>{`${user.firstName} ${user.lastName}`}</Text>
                                         </View>
                                         <View>
-                                            <View className='absolute top-0 right-0 rounded-full justify-center items-center'>
-                                                <MaterialIcons
-                                                    name='edit'
-                                                    size={16}
-                                                    color={Colors[colorScheme ?? 'light'].text}
-                                                />
-                                            </View>
                                             <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@{`${user.username}`}</Text>
                                         </View>
                                     </View>
                                     <PressBtn onPress={() => { return }}>
-                                        <View className=' h-10 px-2 mt-3 mr-5 flex-row justify-center items-center rounded-2xl border-zinc-400 dark:border-zinc-800'>
+                                        <View className='h-10 px-2 mt-3 mr-5 flex-row justify-center items-center rounded-2xl border-zinc-400 dark:border-zinc-800'>
                                             <MaterialIcons
                                                 name='edit'
                                                 size={16}
@@ -437,21 +479,22 @@ const MapViewComponent = () => {
                                         </View>
                                     </PressBtn>
                                 </View>
-                                <View className={'w-full mt-2 justify-start flex-row bg-transparent'}>
-                                    <View className='bg-transparent h-full justify-start mx-5'>
-                                        <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ipsum recusandae similique, at porro quisquam enim officiis nam iure, tempora perspiciatis laborum ducimus fugiat voluptatibus eum saepe cumqu</Text>
-                                    </View>
-                                </View>
 
-                                <View className='flex-row w-full items-center justify-center gap-3'>
+                                <TabView
+                                    navigationState={{ index, routes }}
+                                    renderScene={renderScene}
+                                    onIndexChange={setIndex}
+                                    initialLayout={{ width }}
+                                />
+
+                                {/* <View className='flex-row w-full items-center justify-center mt-4'>
                                     <Text>Is Active?</Text>
                                     <Switch value={profileState === 'active'} onValueChange={() => { void setProfileState(profileState === 'active' ? 'inactive' : 'active') }} />
                                 </View>
 
-                                <View className='flex-row w-full items-center justify-center gap-3'>
-                                    <Text>Role</Text>
-                                    <Text>{profileRole}</Text>
-                                </View>
+                                <View className='flex-row w-full items-center justify-center mt-4'>
+                                    <Text>Role: {profileRole}</Text>
+                                </View> */}
 
 
                             </View>
