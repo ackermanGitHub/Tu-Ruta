@@ -3,7 +3,6 @@ import {
     Image,
     Animated,
     StatusBar,
-    Switch,
     Dimensions,
     LayoutAnimation,
     Pressable,
@@ -29,7 +28,7 @@ import { NightMap } from '../styles/NightMap';
 import UserMarker from '../markers/UserMarker';
 import CarMarker from '../markers/CarMarker';
 
-import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
+// import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
 import { type UserMarkerIcon, userMarkersAtom } from './SelectMarkerIcon';
 
 import LayoutDropdown from './LayoutDropdown';
@@ -110,8 +109,8 @@ const MapViewComponent = () => {
     const navigationAnimValueRef = useRef(new Animated.Value(0)).current;
 
     const [userMarkers, setUserMarkers] = useAtom(userMarkersAtom)
-    const [profileRole, _setProfileRole] = useAtom(profileRoleAtom)
-    const [profileState, setProfileState] = useAtom(profileStateAtom)
+    // const [profileRole, setProfileRole] = useAtom(profileRoleAtom)
+    // const [profileState, setProfileState] = useAtom(profileStateAtom)
 
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const [userSelected, setUserSelected] = useState(true);

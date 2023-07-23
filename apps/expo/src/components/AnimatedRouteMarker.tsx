@@ -52,7 +52,7 @@ const AnimatedRouteMarker = () => {
             clearInterval(interbal_sub)
         }
 
-    }, [])
+    }, [_getLiveLocation])
 
     return (
         <>

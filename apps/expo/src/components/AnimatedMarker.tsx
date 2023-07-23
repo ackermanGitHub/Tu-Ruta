@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useEffect } from 'react'
-import { Dimensions, Easing, Platform } from 'react-native';
+import { Dimensions, Easing } from 'react-native';
 import { AnimatedRegion, Marker, type MapMarker } from 'react-native-maps';
 
 type AnimatedMarkerParams = {
