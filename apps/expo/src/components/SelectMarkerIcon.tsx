@@ -11,8 +11,8 @@ import { useAtom, } from 'jotai';
 import { atomWithStorage, createJSONStorage, } from 'jotai/utils';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-const storedUserMarkers = createJSONStorage<UserMarkerIcon[]>(() => AsyncStorage)
-export const userMarkersAtom = atomWithStorage<UserMarkerIcon[]>('userMarkers', [], storedUserMarkers)
+const storedUserMarkers = createJSONStorage<UserMarkerIconType[]>(() => AsyncStorage)
+export const userMarkersAtom = atomWithStorage<UserMarkerIconType[]>('userMarkers', [], storedUserMarkers)
 
 
 const selectableMarkerIcons = [
@@ -50,7 +50,7 @@ const selectableMarkerIcons = [
     }
 ]
 
-export type UserMarkerIcon = {
+export type UserMarkerIconType = {
     id: string,
     name: string,
     description?: string,
@@ -67,7 +67,7 @@ export type UserMarkerIcon = {
 }
 
 const SelectMarkerIcon: React.FC<{
-    onConfirmFn: (newMarker: UserMarkerIcon) => void
+    onConfirmFn: (newMarker: UserMarkerIconType) => void
 }> = ({ onConfirmFn }) => {
 
     const { width, height } = Dimensions.get('window');
@@ -78,7 +78,7 @@ const SelectMarkerIcon: React.FC<{
     const [isSelectMarkerIconOpen, setIsSelectMarkerIconOpen] = useState(false);
     const [selectMarkerWidth, setSelectMarkerWidth] = useState(40);
     const [selectMarkerHeight, setSelectMarkerHeight] = useState(96);
-    const addingMarkerDataRef = useRef<UserMarkerIcon>({
+    const addingMarkerDataRef = useRef<UserMarkerIconType>({
         // Fix this later, add a new method for creating ids
         id: Date.now().toString(),
         coords: {
