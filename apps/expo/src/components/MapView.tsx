@@ -1,29 +1,21 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Image,
     Animated,
     StatusBar,
     Dimensions,
     LayoutAnimation,
-    Pressable,
-    TouchableWithoutFeedback,
-    FlatList
 } from "react-native";
 import MapView, { type MapMarker, type Region, PROVIDER_GOOGLE } from 'react-native-maps';
-import { BottomSheetModal, BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { type BottomSheetModal, BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { useAtom, } from 'jotai';
-import { useUser } from '@clerk/clerk-expo';
 import { useKeepAwake } from 'expo-keep-awake';
 import { useColorScheme } from 'nativewind';
-import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 
 import useMapConnection from '../hooks/useMapConnection';
 import { type MarkerData } from '../constants/Markers';
 
-import { View, Text } from '../styles/Themed';
-import { PressBtn } from '../styles/PressBtn';
-import Colors from '../styles/Colors';
+import { View } from '../styles/Themed';
 import { NightMap } from '../styles/NightMap';
 import UserMarker from '../markers/UserMarker';
 import CarMarker from '../markers/CarMarker';
@@ -32,75 +24,18 @@ import CarMarker from '../markers/CarMarker';
 import { type UserMarkerIconType, userMarkersAtom } from './SelectMarkerIcon';
 import UserMarkerIcon from './UserMarkerIcon';
 
-import LayoutDropdown from './LayoutDropdown';
 import SelectMarkerIcon from './SelectMarkerIcon';
 import AnimatedRouteMarker from './AnimatedRouteMarker';
+import BottomSheet from './BottomSheeetModal';
+import NavigationMenu from './NavigationMenu';
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
-const snapPoints = ["25%", "50%", "75%"];
-
-const FirstRoute = () => {
-    return (
-        (
-            <View style={{ flex: 1, backgroundColor: '#ff4081' }} />
-        )
-    )
-}
-
-const MarkersProfileTab = () => {
-    const { colorScheme } = useColorScheme();
-    const [userMarkers, setUserMarkers] = useAtom(userMarkersAtom)
-
-    return (
-        (
-            <View style={{ flex: 1, backgroundColor: 'transparent' }} >
-                <FlatList
-                    style={{
-                        width: '100%'
-                    }}
-                    data={userMarkers}
-                    renderItem={({ item }) => (
-                        <View className='w-full h-14 flex-row items-center justify-evenly'>
-                            <MaterialCommunityIcons
-                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                // @ts-ignore
-                                name={item.icon.name}
-                                size={28}
-                                color={Colors[colorScheme ?? 'light'].text}
-                            />
-                            <Text>
-                                {item.name}
-                            </Text>
-                            <PressBtn
-                                onPress={() => {
-                                    void setUserMarkers(userMarkers.filter(marker => marker.id !== item.id))
-                                }}
-                            >
-                                <MaterialCommunityIcons
-                                    name={'trash-can'}
-                                    size={28}
-                                    color={Colors[colorScheme ?? 'light'].text}
-                                />
-                            </PressBtn>
-                        </View>
-                    )}
-                />
-            </View>
-        )
-    )
-}
-
-const renderTabsScene = SceneMap({
-    first: FirstRoute,
-    second: MarkersProfileTab,
-});
-
 const MapViewComponent = () => {
 
+    console.log("MapView re-rendered")
     useKeepAwake();
     const { colorScheme } = useColorScheme();
-    const { user, isLoaded, isSignedIn } = useUser()
     const { width, height } = Dimensions.get('window');
 
     const { markers, location, heading } = useMapConnection();
@@ -108,6 +43,8 @@ const MapViewComponent = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [isMenuVisible, setIsMenuVisible] = useState(true)
     const navigationAnimValueRef = useRef(new Animated.Value(0)).current;
+
+    const [isAddingMarker, setIsAddingMarker] = useState(false);
 
     const mapViewRef = useRef<MapView>(null);
     const _userMarkerRef = useRef<MapMarker>(null);
@@ -119,14 +56,6 @@ const MapViewComponent = () => {
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
-
-    const [isAddingMarker, setIsAddingMarker] = useState(false);
-
-    const [tabsIndex, setTabsIndex] = useState(0);
-    const [tabsRoutes] = useState([
-        { key: 'first', title: 'First' },
-        { key: 'second', title: 'Second' },
-    ]);
 
     useEffect(() => {
         if (selectedMarkerIndex !== null && mapViewRef.current) {
@@ -143,11 +72,16 @@ const MapViewComponent = () => {
 
     }, [markers, selectedMarkerIndex]);
 
-    const animateToRegion = (region: Region) => {
+    const animateToRegion = useCallback((region: Region) => {
         mapViewRef.current && mapViewRef.current.animateToRegion(region)
-    }
+    }, [])
 
-    const handleMarkerPress = (index: number) => {
+    const handlePresentModal = useCallback(() => {
+        bottomSheetModalRef.current?.present();
+        setIsModalVisible(true);
+    }, [])
+
+    const handleMarkerPress = useCallback((index: number) => {
         setUserSelected(false);
         setSelectedMarkerIndex(index);
 
@@ -163,14 +97,9 @@ const MapViewComponent = () => {
                 latitudeDelta: 0.0033333,
             });
         }
-    };
+    }, [animateToRegion, handlePresentModal, markers]);
 
-    const handlePresentModal = () => {
-        bottomSheetModalRef.current?.present();
-        setIsModalVisible(true);
-    }
-
-    const toggleNavMenu = () => {
+    const toggleNavMenu = useCallback(() => {
         const toValue = isMenuOpen ? 0 : 1
         setIsMenuOpen(!isMenuOpen)
 
@@ -180,18 +109,19 @@ const MapViewComponent = () => {
             useNativeDriver: true,
         }).start()
 
-    }
+    }, [isMenuOpen, navigationAnimValueRef])
 
     // Add marker functionality
-    const addMarkerHandler = () => {
+    const addMarkerHandler = useCallback(() => {
         LayoutAnimation.linear()
         setIsMenuVisible(false)
         setIsAddingMarker(!isAddingMarker)
         if (isMenuOpen) {
             toggleNavMenu()
         }
-    }
-    const confirmAddMarkerIcon = (newMarker: UserMarkerIconType) => {
+    }, [isAddingMarker, isMenuOpen, toggleNavMenu])
+
+    const confirmAddMarkerIcon = useCallback((newMarker: UserMarkerIconType) => {
         LayoutAnimation.linear()
         setIsAddingMarker(false)
 
@@ -219,16 +149,20 @@ const MapViewComponent = () => {
 
         void getPoint()
         setIsMenuVisible(true)
-    }
+    }, [height, setUserMarkers, userMarkers, width])
 
-    const openUserProfileHandler = () => {
+    const openUserProfileHandler = useCallback(() => {
         bottomSheetModalRef.current?.present();
         setUserSelected(true)
         setIsModalVisible(true);
         if (isMenuOpen) {
             toggleNavMenu()
         }
-    }
+    }, [isMenuOpen, toggleNavMenu])
+
+    const taxiBtnHandler = useCallback(() => {
+        console.log("taxiBtnHandler")
+    }, [])
 
     return (
         <BottomSheetModalProvider>
@@ -290,240 +224,17 @@ const MapViewComponent = () => {
 
                 {
                     isMenuVisible &&
-                    <Animated.View
-                        style={{
-                            right: (width / 7),
-                            bottom: (height / 10),
-                        }}
-                        className='absolute bg-transparent items-center'
-                    >
-
-                        <TouchableWithoutFeedback>
-                            <Animated.View
-                                style={{
-                                    position: "absolute",
-                                    transform:
-                                        [
-                                            {
-                                                scale: navigationAnimValueRef
-                                            },
-                                            {
-                                                translateY: navigationAnimValueRef.interpolate({
-                                                    inputRange: [0, 1],
-                                                    outputRange: [0, -195]
-                                                })
-                                            }
-                                        ]
-                                }}
-                            >
-                                <PressBtn className={'h-14 w-14 justify-center items-center rounded-full border border-zinc-500'}>
-                                    <MaterialIcons
-                                        name={'local-taxi'}
-                                        size={40}
-                                        color={Colors[colorScheme ?? 'light'].text}
-                                    />
-                                </PressBtn>
-                            </Animated.View>
-                        </TouchableWithoutFeedback>
-
-                        <TouchableWithoutFeedback>
-                            <Animated.View
-                                style={{
-                                    position: "absolute",
-                                    transform:
-                                        [
-                                            {
-                                                scale: navigationAnimValueRef
-                                            },
-                                            {
-                                                translateY: navigationAnimValueRef.interpolate({
-                                                    inputRange: [0, 1],
-                                                    outputRange: [0, -130]
-                                                })
-                                            }
-                                        ]
-                                }}
-                            >
-                                <PressBtn
-                                    className={'h-14 w-14 justify-center items-center rounded-full border border-zinc-500'}
-                                    onPress={openUserProfileHandler}
-                                >
-                                    <MaterialIcons
-                                        name={'account-circle'}
-                                        size={40}
-                                        color={Colors[colorScheme ?? 'light'].text}
-                                    />
-                                </PressBtn>
-                            </Animated.View>
-                        </TouchableWithoutFeedback>
-
-                        <TouchableWithoutFeedback>
-                            <Animated.View
-                                style={{
-                                    position: "absolute",
-                                    transform:
-                                        [
-                                            {
-                                                scale: navigationAnimValueRef
-                                            },
-                                            {
-                                                translateY: navigationAnimValueRef.interpolate({
-                                                    inputRange: [0, 1],
-                                                    outputRange: [0, -65]
-                                                })
-                                            }
-                                        ]
-                                }}
-                            >
-                                <PressBtn onPress={addMarkerHandler} className={'h-14 w-14 justify-center items-center rounded-full border border-zinc-500'}>
-                                    <MaterialIcons
-                                        name={'add-location-alt'}
-                                        size={40}
-                                        color={Colors[colorScheme ?? 'light'].text}
-                                    />
-                                </PressBtn>
-                            </Animated.View>
-                        </TouchableWithoutFeedback>
-
-                        <TouchableWithoutFeedback>
-                            <Animated.View
-                                style={{
-                                    transform:
-                                        [
-                                            {
-                                                rotate: navigationAnimValueRef.interpolate({
-                                                    inputRange: [0, 1],
-                                                    outputRange: ['0deg', '135deg']
-                                                }),
-                                            }
-                                        ]
-                                }}
-                            >
-                                <Pressable onPress={toggleNavMenu} className={' h-16 w-16 justify-center items-center rounded-full border border-zinc-500'}>
-
-                                    <MaterialIcons
-                                        name={'add'}
-                                        size={48}
-                                        color={Colors[colorScheme ?? 'light'].text}
-                                    />
-                                </Pressable>
-                            </Animated.View>
-                        </TouchableWithoutFeedback>
-
-                    </Animated.View>
+                    <NavigationMenu
+                        addMarkerHandler={addMarkerHandler}
+                        navigationAnimValueRef={navigationAnimValueRef}
+                        openUserProfileHandler={openUserProfileHandler}
+                        taxiBtnHandler={taxiBtnHandler}
+                        toggleNavMenu={toggleNavMenu}
+                    />
                 }
 
-                <BottomSheetModal
-                    ref={bottomSheetModalRef}
-                    index={1}
-                    snapPoints={snapPoints}
-                    backgroundStyle={{ borderRadius: 50, backgroundColor: colorScheme === 'light' ? 'rgba(203,213,225,0.8)' : 'rgba(26,18,11,0.5)' }}
-                    handleIndicatorStyle={{
-                        backgroundColor: colorScheme === 'dark' ? 'rgba(203,213,225,0.8)' : 'rgba(26,18,11,0.5)'
-                    }}
-                    onDismiss={() => {
-                        setIsModalVisible(false)
-                        setUserSelected(false)
-                    }}
-                >
-                    <View className={'w-full h-full rounded-t-3xl overflow-hidden'}>
+                <BottomSheet bottomSheetModalRef={bottomSheetModalRef} userSelected={userSelected} selectedMarkerIndex={selectedMarkerIndex} isVisible={isModalVisible} setIsVisible={setIsModalVisible} />
 
-                        {selectedMarkerIndex !== null && !userSelected && (
-                            <View className='w-full h-full'>
-
-                                <Animated.Image
-                                    source={{
-                                        uri: 'https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c'
-                                    }}
-                                    className={'w-full h-48'}
-                                    resizeMode="cover"
-                                />
-
-                                <View className={'absolute left-5 top-40 border-2 border-solid border-white dark:border-black w-16 h-16 rounded-full overflow-hidden'}>
-                                    <Animated.Image
-                                        source={{
-                                            uri: 'https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c'
-                                        }}
-                                        className={'w-16 h-16'}
-                                        resizeMode="cover"
-                                    />
-                                </View>
-
-                                <View className={'w-full h-20 justify-between flex-row bg-transparent'}>
-                                    <View className='bg-transparent h-full justify-end ml-5'>
-                                        <Text className='font-bold text-lg'>Julio López</Text>
-                                        <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@julydev</Text>
-                                    </View>
-                                    <View className='flex-row h-full justify-between items-center'>
-                                        <MaterialCommunityIcons
-                                            name={colorScheme === 'dark' ? "message-text" : "message-text-outline"}
-                                            size={24}
-                                            color={Colors[colorScheme ?? 'light'].text}
-                                        />
-                                    </View>
-                                </View>
-
-                            </View>
-                        )}
-
-
-                        {(userSelected && isSignedIn && isLoaded) && (
-                            <View className='w-full h-full'>
-
-                                <Animated.Image
-                                    source={{
-                                        uri: 'https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c'
-                                    }}
-                                    className={'w-full h-48'}
-                                    resizeMode="cover"
-                                />
-
-                                <LayoutDropdown />
-
-                                <View className={'absolute left-5 top-40 border-2 border-solid border-white dark:border-black w-16 h-16 rounded-full overflow-hidden'}>
-                                    <Animated.Image
-                                        source={{
-                                            uri: 'https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c'
-                                        }}
-                                        className={'w-16 h-16'}
-                                        resizeMode="cover"
-                                    />
-                                </View>
-
-                                <View className={'w-full h-20 justify-between flex-row bg-transparent'}>
-                                    <View className='bg-transparent h-full justify-end ml-5'>
-                                        <View className='bg-transparent'>
-                                            <Text className='font-bold text-lg'>{`${user.firstName} ${user.lastName}`}</Text>
-                                        </View>
-                                        <View>
-                                            <Text className='font-medium text-sm text-slate-700 dark:text-slate-100'>@{`${user.username}`}</Text>
-                                        </View>
-                                    </View>
-                                    <PressBtn onPress={() => { return }}>
-                                        <View className='h-10 px-2 mt-3 mr-5 flex-row justify-center items-center rounded-2xl border-zinc-400 dark:border-zinc-800'>
-                                            <MaterialIcons
-                                                name='edit'
-                                                size={16}
-                                                color={Colors[colorScheme ?? 'light'].text}
-                                            />
-                                            <Text className='font-bold ml-2 text-base'>Editar Perfil</Text>
-                                        </View>
-                                    </PressBtn>
-                                </View>
-
-                                <TabView
-                                    navigationState={{ index: tabsIndex, routes: tabsRoutes }}
-                                    renderScene={renderTabsScene}
-                                    onIndexChange={setTabsIndex}
-                                    initialLayout={{ width }}
-                                    renderTabBar={(props) => <TabBar style={{ backgroundColor: 'transparent' }} {...props} />}
-                                    lazy
-                                />
-
-                            </View>
-                        )}
-                    </View>
-                </BottomSheetModal>
 
             </View>
 
