@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, memo } from 'react'
 import { Dimensions, LayoutAnimation, Pressable, TouchableWithoutFeedback } from 'react-native';
 
 import { View, Text } from '../styles/Themed';
@@ -223,4 +223,4 @@ const SelectMarkerIcon: React.FC<{
     )
 }
 
-export default SelectMarkerIcon
+export default memo(SelectMarkerIcon)

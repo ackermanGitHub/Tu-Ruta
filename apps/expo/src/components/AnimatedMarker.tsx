@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect } from 'react'
+import React, { useRef, useCallback, useEffect, memo } from 'react'
 import { Dimensions, Easing } from 'react-native';
 import { AnimatedRegion, Marker, type MapMarker } from 'react-native-maps';
 
@@ -47,4 +47,4 @@ const AnimatedMarker: React.FC<AnimatedMarkerParams> = ({ latitude, longitude })
     )
 }
 
-export default AnimatedMarker
+export default memo(AnimatedMarker)

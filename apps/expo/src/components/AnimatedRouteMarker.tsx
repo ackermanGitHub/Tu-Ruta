@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, memo } from 'react'
 import { type LatLng } from 'react-native-maps';
 import { getDirections } from '../utils/helpers';
 import AnimatedMarker from './AnimatedMarker';
@@ -65,4 +65,4 @@ const AnimatedRouteMarker = () => {
     )
 }
 
-export default AnimatedRouteMarker
+export default memo(AnimatedRouteMarker)

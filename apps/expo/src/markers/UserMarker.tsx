@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react'
-import { Circle, MapMarkerProps, MarkerAnimated } from 'react-native-maps'
+import React, { memo, useEffect, useRef } from 'react'
+import { Circle, type MapMarkerProps, MarkerAnimated } from 'react-native-maps'
 import { View } from '../styles/Themed'
 
 import { type MarkerData } from '../constants/Markers'
@@ -92,4 +92,4 @@ const UserMarker = ({ coordinate, description, title, userId, heading, ...props 
     )
 }
 
-export default UserMarker;
+export default memo(UserMarker);

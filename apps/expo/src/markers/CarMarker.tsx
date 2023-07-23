@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { memo, useEffect, useRef } from 'react'
 import { type MapMarkerProps, MarkerAnimated } from 'react-native-maps'
 import { Image } from 'expo-image'
 import { View } from '../styles/Themed'
@@ -128,4 +128,4 @@ const CarMarker = ({ coordinate, description, title, userId, category, image, he
     )
 }
 
-export default CarMarker;
+export default memo(CarMarker);
