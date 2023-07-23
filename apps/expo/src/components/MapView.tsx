@@ -8,6 +8,7 @@ import {
     LayoutAnimation,
     Pressable,
     TouchableWithoutFeedback,
+    FlatList
 } from "react-native";
 import MapView, { type MapMarker, type Region, PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import { BottomSheetModal, BottomSheetModalProvider } from "@gorhom/bottom-sheet";
@@ -16,7 +17,7 @@ import { useUser } from '@clerk/clerk-expo';
 import { useKeepAwake } from 'expo-keep-awake';
 import { useColorScheme } from 'nativewind';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { TabView, SceneMap } from 'react-native-tab-view';
+import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 
 import useMapConnection from '../hooks/useMapConnection';
 import { type MarkerData } from '../constants/Markers';
@@ -33,6 +34,7 @@ import { type UserMarkerIcon, userMarkersAtom } from './SelectMarkerIcon';
 
 import LayoutDropdown from './LayoutDropdown';
 import SelectMarkerIcon from './SelectMarkerIcon';
+import AnimatedRouteMarker from './AnimatedRouteMarker';
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
@@ -48,9 +50,43 @@ const FirstRoute = () => {
 
 const MarkersProfileTab = () => {
     const { colorScheme } = useColorScheme();
+    const [userMarkers, setUserMarkers] = useAtom(userMarkersAtom)
+
     return (
         (
-            <View style={{ flex: 1, backgroundColor: colorScheme === 'light' ? 'white' : 'black' }} />
+            <View style={{ flex: 1, backgroundColor: 'transparent' }} >
+                <FlatList
+                    style={{
+                        width: '100%'
+                    }}
+                    data={userMarkers}
+                    renderItem={({ item }) => (
+                        <View className='w-full h-14 flex-row items-center justify-evenly'>
+                            <MaterialCommunityIcons
+                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                // @ts-ignore
+                                name={item.icon.name}
+                                size={28}
+                                color={Colors[colorScheme ?? 'light'].text}
+                            />
+                            <Text>
+                                {item.name}
+                            </Text>
+                            <PressBtn
+                                onPress={() => {
+                                    void setUserMarkers(userMarkers.filter(marker => marker.id !== item.id))
+                                }}
+                            >
+                                <MaterialCommunityIcons
+                                    name={'trash-can'}
+                                    size={28}
+                                    color={Colors[colorScheme ?? 'light'].text}
+                                />
+                            </PressBtn>
+                        </View>
+                    )}
+                />
+            </View>
         )
     )
 }
@@ -173,6 +209,8 @@ const MapViewComponent = () => {
             }
 
             await setUserMarkers([...userMarkers, {
+                // Fix this later, add a new method for creating ids
+                id: Date.now().toString(),
                 coords: {
                     latitude: pointCoords.latitude,
                     longitude: pointCoords.longitude,
@@ -207,6 +245,11 @@ const MapViewComponent = () => {
                     onTouchEnd={() => {
                         // _fadeInNav()
                     }}
+                    onPress={() => {
+                        if (isMenuOpen) {
+                            toggleNavMenu()
+                        }
+                    }}
                     className={"w-full h-full"}
                     initialRegion={{
                         latitude: 23.118644,
@@ -235,7 +278,6 @@ const MapViewComponent = () => {
                                 <Marker
                                     coordinate={userMarker.coords}
                                     key={index}
-
                                 >
                                     <MaterialCommunityIcons
                                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -248,6 +290,8 @@ const MapViewComponent = () => {
                             )
                         })
                     }
+
+                    <AnimatedRouteMarker />
 
                     {location && <UserMarker onPress={openUserProfileHandler} coordinate={location.coords} description='' title='' userId='' heading={heading} />}
 
@@ -389,7 +433,9 @@ const MapViewComponent = () => {
                     index={1}
                     snapPoints={snapPoints}
                     backgroundStyle={{ borderRadius: 50, backgroundColor: colorScheme === 'light' ? 'rgba(203,213,225,0.8)' : 'rgba(26,18,11,0.5)' }}
-                    /* backgroundStyle={{ borderRadius: 50, backgroundColor: colorScheme === 'light' ? 'white' : 'black' }} */
+                    handleIndicatorStyle={{
+                        backgroundColor: colorScheme === 'dark' ? 'rgba(203,213,225,0.8)' : 'rgba(26,18,11,0.5)'
+                    }}
                     onDismiss={() => {
                         setIsModalVisible(false)
                         setUserSelected(false)
@@ -485,6 +531,8 @@ const MapViewComponent = () => {
                                     renderScene={renderScene}
                                     onIndexChange={setIndex}
                                     initialLayout={{ width }}
+                                    renderTabBar={(props) => <TabBar style={{ backgroundColor: 'transparent' }} {...props} />}
+                                    lazy
                                 />
 
                                 {/* <View className='flex-row w-full items-center justify-center mt-4'>

@@ -51,6 +51,7 @@ const selectableMarkerIcons = [
 ]
 
 export type UserMarkerIcon = {
+    id: string,
     name: string,
     description?: string,
     icon: {
@@ -78,6 +79,8 @@ const SelectMarkerIcon: React.FC<{
     const [selectMarkerWidth, setSelectMarkerWidth] = useState(40);
     const [selectMarkerHeight, setSelectMarkerHeight] = useState(96);
     const addingMarkerDataRef = useRef<UserMarkerIcon>({
+        // Fix this later, add a new method for creating ids
+        id: Date.now().toString(),
         coords: {
             latitude: 69.420,
             longitude: 69.420
@@ -86,7 +89,7 @@ const SelectMarkerIcon: React.FC<{
             type: "MCI",
             name: "airplane-marker"
         },
-        name: "undefined"
+        name: "airplane-marker"
     });
 
     const toggleSelectMarkerIcon = () => {
@@ -115,6 +118,7 @@ const SelectMarkerIcon: React.FC<{
 
     const onMarkerIconPress = (markerIcon: { type: string; name: string; }) => {
         addingMarkerDataRef.current = {
+            ...addingMarkerDataRef.current,
             icon: markerIcon,
             name: markerIcon.name,
             coords: {
