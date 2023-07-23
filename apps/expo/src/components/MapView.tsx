@@ -9,7 +9,7 @@ import {
     TouchableWithoutFeedback,
     FlatList
 } from "react-native";
-import MapView, { type MapMarker, type Region, PROVIDER_GOOGLE, Marker } from 'react-native-maps';
+import MapView, { type MapMarker, type Region, PROVIDER_GOOGLE } from 'react-native-maps';
 import { BottomSheetModal, BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { useAtom, } from 'jotai';
 import { useUser } from '@clerk/clerk-expo';
@@ -29,7 +29,8 @@ import UserMarker from '../markers/UserMarker';
 import CarMarker from '../markers/CarMarker';
 
 // import { profileRoleAtom, profileStateAtom } from "../hooks/useMapConnection";
-import { type UserMarkerIcon, userMarkersAtom } from './SelectMarkerIcon';
+import { type UserMarkerIconType, userMarkersAtom } from './SelectMarkerIcon';
+import UserMarkerIcon from './UserMarkerIcon';
 
 import LayoutDropdown from './LayoutDropdown';
 import SelectMarkerIcon from './SelectMarkerIcon';
@@ -37,7 +38,7 @@ import AnimatedRouteMarker from './AnimatedRouteMarker';
 
 void Image.prefetch("https://lh3.googleusercontent.com/a/AAcHTtfPgVic8qF8hDw_WPE80JpGOkKASohxkUA8y272Ow=s1000-c")
 
-const snapPoints = ["25%", "48%", "75%"];
+const snapPoints = ["25%", "50%", "75%"];
 
 const FirstRoute = () => {
     return (
@@ -90,7 +91,7 @@ const MarkersProfileTab = () => {
     )
 }
 
-const renderScene = SceneMap({
+const renderTabsScene = SceneMap({
     first: FirstRoute,
     second: MarkersProfileTab,
 });
@@ -108,24 +109,21 @@ const MapViewComponent = () => {
     const [isMenuVisible, setIsMenuVisible] = useState(true)
     const navigationAnimValueRef = useRef(new Animated.Value(0)).current;
 
+    const mapViewRef = useRef<MapView>(null);
+    const _userMarkerRef = useRef<MapMarker>(null);
     const [userMarkers, setUserMarkers] = useAtom(userMarkersAtom)
     // const [profileRole, setProfileRole] = useAtom(profileRoleAtom)
     // const [profileState, setProfileState] = useAtom(profileStateAtom)
 
-    const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const [userSelected, setUserSelected] = useState(true);
-
-    const _userMarkerRef = useRef<MapMarker>(null);
-    const mapViewRef = useRef<MapView>(null);
+    const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-
-
-    const [_isModalVisible, setIsModalVisible] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState(false);
 
     const [isAddingMarker, setIsAddingMarker] = useState(false);
 
-    const [index, setIndex] = React.useState(0);
-    const [routes] = React.useState([
+    const [tabsIndex, setTabsIndex] = useState(0);
+    const [tabsRoutes] = useState([
         { key: 'first', title: 'First' },
         { key: 'second', title: 'Second' },
     ]);
@@ -193,7 +191,7 @@ const MapViewComponent = () => {
             toggleNavMenu()
         }
     }
-    const confirmAddMarkerIcon = (newMarker: UserMarkerIcon) => {
+    const confirmAddMarkerIcon = (newMarker: UserMarkerIconType) => {
         LayoutAnimation.linear()
         setIsAddingMarker(false)
 
@@ -274,18 +272,7 @@ const MapViewComponent = () => {
                     {
                         userMarkers.map((userMarker, index) => {
                             return (
-                                <Marker
-                                    coordinate={userMarker.coords}
-                                    key={index}
-                                >
-                                    <MaterialCommunityIcons
-                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                        // @ts-ignore
-                                        name={userMarker.icon.name}
-                                        size={28}
-                                        color={Colors[colorScheme ?? 'light'].text}
-                                    />
-                                </Marker>
+                                <UserMarkerIcon {...userMarker} key={index} colorScheme={colorScheme} />
                             )
                         })
                     }
@@ -427,7 +414,6 @@ const MapViewComponent = () => {
                 }
 
                 <BottomSheetModal
-                    enableContentPanningGesture={false}
                     ref={bottomSheetModalRef}
                     index={1}
                     snapPoints={snapPoints}
@@ -526,23 +512,13 @@ const MapViewComponent = () => {
                                 </View>
 
                                 <TabView
-                                    navigationState={{ index, routes }}
-                                    renderScene={renderScene}
-                                    onIndexChange={setIndex}
+                                    navigationState={{ index: tabsIndex, routes: tabsRoutes }}
+                                    renderScene={renderTabsScene}
+                                    onIndexChange={setTabsIndex}
                                     initialLayout={{ width }}
                                     renderTabBar={(props) => <TabBar style={{ backgroundColor: 'transparent' }} {...props} />}
                                     lazy
                                 />
-
-                                {/* <View className='flex-row w-full items-center justify-center mt-4'>
-                                    <Text>Is Active?</Text>
-                                    <Switch value={profileState === 'active'} onValueChange={() => { void setProfileState(profileState === 'active' ? 'inactive' : 'active') }} />
-                                </View>
-
-                                <View className='flex-row w-full items-center justify-center mt-4'>
-                                    <Text>Role: {profileRole}</Text>
-                                </View> */}
-
 
                             </View>
                         )}
